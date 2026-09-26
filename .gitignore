@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+outputs/
+.DS_Store
+
+# Model weights are pulled locally; only the manifests and the small upstream config/text files are committable
+weights/**/*.safetensors
+weights/**/*.bin
+weights/**/*.pt
+weights/**/*.pth
+weights/**/*.ckpt
+weights/**/*.msgpack
+weights/**/*.h5
+weights/**/.cache/
+
+# the pinned sample photographs are fetched at run time
+weights/inat-birds/
