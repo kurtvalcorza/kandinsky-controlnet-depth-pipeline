@@ -81,8 +81,12 @@ MOVQ_PARAMETERS = 67_832_495
 MOVQ_TENSORS = 431
 PRIOR_PARAMETERS = 1_026_225_920
 PRIOR_TENSORS = 338
-DEPTH_PARAMETERS = 341_850_305
+DEPTH_PARAMETERS = 341_850_305  # tensors stored in the pinned DPT checkpoint
 DEPTH_TENSORS = 458
+# `DPTForDepthEstimation` builds 4 more tensors (1,180,160 parameters): the residual branch of its first fusion
+# layer, which the checkpoint omits because the forward pass never calls it (that layer receives no residual input).
+DEPTH_MODEL_PARAMETERS = 343_030_465
+DEPTH_MODEL_TENSORS = 462
 
 RESOLUTION = 512
 LATENT_CHANNELS = 4
@@ -516,6 +520,12 @@ def build_depth_estimator(weights_dir: Path, *, dtype: Any) -> tuple[Any, Any]:
         warnings.simplefilter("ignore")
         model = AutoModelForDepthEstimation.from_pretrained(str(weights_dir), dtype=dtype, use_safetensors=True)
         processor = AutoImageProcessor.from_pretrained(str(weights_dir))
+    n_params = sum(p.numel() for p in model.parameters())
+    if n_params != DEPTH_MODEL_PARAMETERS or len(model.state_dict()) != DEPTH_MODEL_TENSORS:
+        raise ValueError(
+            f"depth estimator has {n_params} parameters in {len(model.state_dict())} tensors; "
+            f"expected {DEPTH_MODEL_PARAMETERS} / {DEPTH_MODEL_TENSORS}"
+        )
     for param in model.parameters():
         param.requires_grad_(False)
     return model.eval(), processor
