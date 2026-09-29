@@ -121,9 +121,7 @@ answers, a change-one-thing activity, troubleshooting and a conclusion scaffold)
 
 ## Release status
 
-**Release-grade** — the tutorial notebook passed a clean-runtime `Run all` and the REL12 BYOD journey on a Kaggle T4 at
-`f4fe86a`, and the conversion check proved the pinned safetensors bit-identical to `main` (all on 2026-09-29); see
-`docs/release-verification.md` and `STATUS.md`.
+**Candidate** — the notebook stops at its install cell on hosted runtimes that preload `numpy`, `protobuf` and `cuda-bindings` (Google Colab and Kaggle), because the pinned install replaces those loaded packages and the cell then asks for a manual runtime restart. Notebook Specification 2.2 RUN1 and RUN10 forbid a manual restart on the `Run all` path, so the tutorial is not release-ready. The Kaggle runs recorded in `docs/release-verification.md` completed only because the executor restarted the kernel automatically; they remain valid evidence for everything after the install cell. Found in a Colab `Run all` on 2026-09-29; the fix (an isolated, hash-locked environment for the tutorial stages) is in progress. See `STATUS.md` and `docs/release-verification.md`.
 
 ## Licensing
 
