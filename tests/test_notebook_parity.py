@@ -1,12 +1,15 @@
-"""NOTEBOOK_SPEC 2.2 parity tests (PAR1–PAR3) for the standalone tutorial notebook.
+"""NOTEBOOK_SPEC 2.2 parity tests (PAR1–PAR3) for the standalone tutorial notebook (isolated-environment carrier).
 
-The notebook carries `src/<package>/pipeline.py` verbatim; these tests fail whenever the carried
-cell, the inline manifest, or the inline pins diverge from the repository at HEAD.
+The notebook carries the repository's package, the stage runner, the hash-locked requirements, the snapshot manifests
+and the licence as text in one carrier cell; these tests fail whenever a carried file, its recorded SHA-256, the lock or
+the generated notebook diverges from the repository at HEAD.
 """
 # ruff: noqa: E501
 
 from __future__ import annotations
 
+import ast
+import hashlib
 import importlib.util
 import json
 import re
@@ -29,9 +32,7 @@ def _load(name: str):
 build = _load("build_notebook")
 TEMPLATE = _load("notebook_template").TEMPLATE
 NOTEBOOK = ROOT / "tutorials" / TEMPLATE["notebook_name"]
-PKG_DIR = ROOT / TEMPLATE.get("package_dir", f"src/{TEMPLATE['package']}")
-MODULE = PKG_DIR / TEMPLATE.get("entry_module", "pipeline.py")
-MANIFEST = ROOT / "weights" / TEMPLATE["weights_key"] / "dimer-base-manifest.json"
+LOCK = ROOT / TEMPLATE["carried"][TEMPLATE["lock"]]
 
 
 @pytest.fixture(scope="module")
@@ -41,68 +42,62 @@ def notebook() -> dict:
     return json.loads(NOTEBOOK.read_text(encoding="utf-8"))
 
 
-def _cells(notebook: dict, cell_type: str) -> list[dict]:
-    return [c for c in notebook["cells"] if c["cell_type"] == cell_type]
-
-
 def _source(cell: dict) -> str:
     src = cell["source"]
     return "".join(src) if isinstance(src, list) else src
 
 
-def test_par1_embedded_modules_equal_repository_modules(notebook: dict) -> None:
-    """One tagged cell per carried module, in dependency order, each equal to its module after rewrites."""
-    tagged = [c for c in _cells(notebook, "code") if c.get("metadata", {}).get("dimer", {}).get("embedded_module")]
-    recorded = notebook["metadata"]["dimer"]["generated_from"]["revision"]
-    ctx = build.load_context(ROOT, TEMPLATE, recorded)
-    assert [c["metadata"]["dimer"]["embedded_module"] for c in tagged] == ctx["module_rels"]
-    for cell, module in zip(tagged, ctx["modules"], strict=True):
-        rel = f"{ctx['pkg_rel']}/{module}"
-        assert cell["metadata"]["dimer"]["module_sha256"] == ctx["per_module_sha256"][rel]
-        drifted = f"embedded module cell for {rel} drifted from the package; regenerate the notebook"
-        assert _source(cell).rstrip("\n") + "\n" == ctx["embedded"][module], drifted
+def _carrier(notebook: dict) -> tuple[dict, dict[str, str], dict[str, str]]:
+    cells = [c for c in notebook["cells"] if c["cell_type"] == "code" and c.get("metadata", {}).get("dimer", {}).get("embedded_sources")]
+    assert len(cells) == 1, "exactly one carrier cell is expected"
+    source = _source(cells[0])
+    tree = ast.parse(source)
+    values = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id in ("CARRIED_FILES", "CARRIED_HASHES"):
+            values[node.targets[0].id] = ast.literal_eval(node.value)
+    return cells[0], values["CARRIED_FILES"], values["CARRIED_HASHES"]
 
 
-REWRITES = TEMPLATE.get("rewrites", build.REWRITES)
+def test_par1_carried_files_equal_repository_sources(notebook: dict) -> None:
+    """Every carried file is the repository file byte for byte (UTF-8 text, LF newlines)."""
+    _cell, files, _hashes = _carrier(notebook)
+    assert list(files) == [*TEMPLATE["carried"], build.SOURCE_RECORD]
+    for dest, source in TEMPLATE["carried"].items():
+        assert files[dest] == (ROOT / source).read_text(encoding="utf-8"), f"carried {dest} drifted from {source}; regenerate the notebook"
 
 
-def test_par1_rewrite_rules_are_the_only_difference() -> None:
-    """Every line the generator changed in a carried module is a documented rewrite."""
-    import difflib
-
-    ctx = build.load_context(ROOT, TEMPLATE)
-    rule_hits = 0
-    for module, original in ctx["texts"].items():
-        a, b = original.splitlines(), ctx["embedded"][module].splitlines()
-        for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(a=a, b=b, autojunk=False).get_opcodes():
-            if tag == "equal":
-                continue
-            replaced = b[j1:j2]
-            assert replaced and all("standalone rewrite" in line for line in replaced), (
-                module,
-                a[i1:i2],
-                replaced,
-            )
-            rule_hits += sum("__file__" in line for line in a[i1:i2])
-    assert rule_hits == len(REWRITES)
+def test_par1_carried_hashes_are_correct_and_recorded(notebook: dict) -> None:
+    cell, files, hashes = _carrier(notebook)
+    assert set(hashes) == set(files)
+    for dest, text in files.items():
+        assert hashes[dest] == hashlib.sha256(text.encode("utf-8")).hexdigest(), dest
+    assert cell["metadata"]["dimer"]["files"] == hashes
+    assert notebook["metadata"]["dimer"]["generated_from"]["files"] == hashes
+    record = json.loads(files[build.SOURCE_RECORD])
+    assert record["revision"] == notebook["metadata"]["dimer"]["generated_from"]["revision"]
+    assert record["files"] == {d: h for d, h in hashes.items() if d != build.SOURCE_RECORD}
 
 
-def test_par2_inline_manifest_and_pins_match_repository(notebook: dict) -> None:
-    code = "\n".join(_source(c) for c in _cells(notebook, "code"))
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    inline = re.search(r"^MANIFEST = (\{.*?^\})$", code, re.M | re.S)
-    assert inline, "model cell must carry MANIFEST = {...}"
-    assert json.loads(inline.group(1)) == manifest
-    pins_block = re.search(r"^PINS = \[(.*?)^\]", code, re.M | re.S)
-    assert pins_block, "install cell must carry PINS = [...]"
-    inline_pins = re.findall(r"'([^']+)'", pins_block.group(1))
-    assert inline_pins == build._pins(ROOT)
+def test_par2_carried_lock_is_the_committed_lock_and_pins_pyproject(notebook: dict) -> None:
+    _cell, files, _hashes = _carrier(notebook)
+    lock_text = LOCK.read_text(encoding="utf-8")
+    assert files[TEMPLATE["lock"]] == lock_text
+    build.check_lock(build._pins(ROOT), lock_text)  # every direct pin at its version, every entry hashed
+    locked = build.lock_packages(lock_text)
+    assert locked["torch"] == "2.14.0" and "cuda-bindings" in locked
+    assert "--only-binary :all:" in lock_text.splitlines()[1], "the lock must be compiled wheel-only"
+
+
+def test_par2_carried_manifests_are_the_committed_manifests(notebook: dict) -> None:
+    _cell, files, _hashes = _carrier(notebook)
+    manifests = [d for d in files if d.startswith("weights/")]
+    assert len(manifests) == 4
+    for dest in manifests:
+        assert json.loads(files[dest]) == json.loads((ROOT / dest).read_text(encoding="utf-8"))
     meta = notebook["metadata"]["dimer"]
     assert meta["standalone"] is True
     assert meta["notebook_spec"] == build.NOTEBOOK_SPEC
-    pkg_dir = TEMPLATE.get("package_dir", f"src/{TEMPLATE['package']}")
-    entry = TEMPLATE.get("entry_module", "pipeline.py")
-    assert meta["generated_from"]["module"] == f"{pkg_dir}/{entry}"
     assert meta["generated_from"]["module_sha256"] == build.load_context(ROOT, TEMPLATE)["module_sha256"]
 
 
@@ -114,8 +109,8 @@ def test_par3_generator_check_is_clean(notebook: dict) -> None:
 
 
 def test_st1_primary_path_has_no_repository_dependency(notebook: dict) -> None:
-    code = "\n".join(_source(c) for c in _cells(notebook, "code"))
+    code = "\n".join(_source(c) for c in notebook["cells"] if c["cell_type"] == "code")
     assert "git" not in re.findall(r"subprocess\.run\(\[([^\]]*)\]", code).__str__()
-    assert f"import {TEMPLATE['package']}" not in code
-    assert f"from {TEMPLATE['package']}" not in code
     assert "github.com" not in code
+    kernel = "\n".join(_source(c) for c in notebook["cells"] if c["cell_type"] == "code" and not c["metadata"].get("dimer", {}).get("embedded_sources"))
+    assert TEMPLATE["package"] not in kernel, "the kernel must not import the package; stages import the carried copy"
