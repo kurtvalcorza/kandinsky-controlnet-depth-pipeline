@@ -369,8 +369,14 @@ def validate_identity_consistency() -> None:
 # (dataset files, upstream files that are not staged, origin checkpoints, totals). Declared entries
 # that no document cites any more are rejected, so the allowlist cannot go stale.
 WEIGHT_DOCS = ("README.md", "MODEL_CARD.md", "docs/WEIGHTS.md")
-EXTERNAL_WEIGHT_BYTES: dict[int, str] = {}
-EXTERNAL_WEIGHT_DIGESTS: dict[str, str] = {}
+EXTERNAL_WEIGHT_BYTES: dict[int, str] = {
+    5_013_996_233: "upstream main 4ecd717e unet/diffusion_pytorch_model.bin (never staged; the conversion reference)",
+    271_492_131: "upstream main 4ecd717e movq/diffusion_pytorch_model.bin (never staged; the conversion reference)",
+}
+EXTERNAL_WEIGHT_DIGESTS: dict[str, str] = {
+    "3418cd4f977d51ec902d095ff67482232c6097edfd91b474443148113b8f8a36": "upstream main unet .bin, uploaded in commit 741f0804 (date_published source)",
+    "772e09739d742ddee6807add2d3c2fd2a32db53896b5d07a92c729d8c879ce59": "upstream main movq .bin (never staged; the conversion reference)",
+}
 _DIGEST = re.compile(r"(?<![0-9a-fA-F])[0-9a-f]{64}(?![0-9a-fA-F])")
 _GROUPED = r"(\d{1,3}(?:[,\u202f\u00a0 ]\d{3})+|\d+)"
 _BYTE_COUNT = re.compile(r"(?<![\d,\-])" + _GROUPED + r"\s*bytes\b|totalBytes`?\s*" + _GROUPED)
