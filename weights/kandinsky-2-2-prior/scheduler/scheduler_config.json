@@ -1,0 +1,9 @@
+{
+  "_class_name": "UnCLIPScheduler",
+  "_diffusers_version": "0.17.0.dev0",
+  "clip_sample": true,
+  "clip_sample_range": 10.0,
+  "num_train_timesteps": 1000,
+  "prediction_type": "sample",
+  "variance_type": "fixed_small_log"
+}

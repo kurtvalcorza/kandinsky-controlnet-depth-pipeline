@@ -1,0 +1,30 @@
+{
+  "format": "dimer_hf_snapshot",
+  "formatVersion": 1,
+  "modelKey": "dpt-large",
+  "modelId": "Intel/dpt-large",
+  "revision": "bc15f29aa3a80d532f2ed650b5e16ac48d8958f9",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7761,
+      "sha256": "133f82ba637c5e4786f392f5c7c789bf2f6ba701d17dce01ea206be1f57a1817"
+    },
+    {
+      "path": "config.json",
+      "bytes": 942,
+      "sha256": "93aa698ce1f8e886160f760677fdc2c8c956da072735c44cbe1244d78e41c98e"
+    },
+    {
+      "path": "preprocessor_config.json",
+      "bytes": 285,
+      "sha256": "42e2f4e243da22ec0090fc525a6774dfc641bdd95be9b02e1c07aa97fdd6d8fa"
+    },
+    {
+      "path": "model.safetensors",
+      "bytes": 1367456044,
+      "sha256": "c173e7fd575c4d6c2164621063fed3a0e7e2eb6adbfb7c1845b364bc0fed9ce8"
+    }
+  ],
+  "totalBytes": 1367465032
+}
