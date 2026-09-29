@@ -283,10 +283,13 @@ def test_prompt_seed_is_stable_across_processes(forbid_model_imports):
         "import json, sys; from kandinsky_controlnet_depth_pipeline import prompt_seed; "
         "print(json.dumps([prompt_seed(p) for p in json.loads(sys.argv[1])]))"
     )
+    import os
+
+    src_path = os.pathsep.join([str(Path(__file__).resolve().parents[1] / "src"), os.environ.get("PYTHONPATH", "")])
     for hash_seed in ("1", "2"):
         out = subprocess.run(
             [sys.executable, "-c", code, json.dumps(prompts)],
-            env={**__import__("os").environ, "PYTHONHASHSEED": hash_seed},
+            env={**os.environ, "PYTHONHASHSEED": hash_seed, "PYTHONPATH": src_path},
             capture_output=True,
             text=True,
             check=True,
