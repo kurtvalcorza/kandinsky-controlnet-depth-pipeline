@@ -1,0 +1,80 @@
+{
+  "format": "dimer_hf_snapshot",
+  "formatVersion": 1,
+  "modelKey": "kandinsky-2-2-prior",
+  "modelId": "kandinsky-community/kandinsky-2-2-prior",
+  "revision": "9fc51ad5732afc5d031724219d22e6c42179c5a8",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 14444,
+      "sha256": "bba4898931a219c1d2f2f832bb8050e205a94ec781e7ebee55eb96c89add286d"
+    },
+    {
+      "path": "model_index.json",
+      "bytes": 501,
+      "sha256": "26cba76e560b6da612d65b8e7beac9be04442df8df2e1743b8466454988d1f5e"
+    },
+    {
+      "path": "text_encoder/config.json",
+      "bytes": 2017,
+      "sha256": "3dec84fa855c0b7f531eea433e805a1194086c38c5635baceda8cbed4f727f1b"
+    },
+    {
+      "path": "text_encoder/model.safetensors",
+      "bytes": 2778702976,
+      "sha256": "6eaafeea664d7ab87df17274d6114dfdf092c587c7cd56c13cf84aacdebc0332"
+    },
+    {
+      "path": "image_processor/preprocessor_config.json",
+      "bytes": 315,
+      "sha256": "0a70aaa5de2ccb5e222b0e7e3ea347a3da051c3588c763cdd23b4d80bbf96b65"
+    },
+    {
+      "path": "tokenizer/merges.txt",
+      "bytes": 524619,
+      "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a"
+    },
+    {
+      "path": "tokenizer/special_tokens_map.json",
+      "bytes": 389,
+      "sha256": "f8c0d6c39aee3f8431078ef6646567b0aba7f2246e9c54b8b99d55c22b707cbf"
+    },
+    {
+      "path": "tokenizer/tokenizer_config.json",
+      "bytes": 904,
+      "sha256": "e19f34ef773563fb695f96cfcae1e4c7b112ab6ad532f6962061df5242d924f0"
+    },
+    {
+      "path": "tokenizer/vocab.json",
+      "bytes": 862328,
+      "sha256": "5047b556ce86ccaf6aa22b3ffccfc52d391ea4accdab9c2f2407da5b742d4363"
+    },
+    {
+      "path": "image_encoder/config.json",
+      "bytes": 2013,
+      "sha256": "1d53c2b4b74c5f85171d313adda3e3b8771ff5c698ee66a29710d0ac822298e4"
+    },
+    {
+      "path": "image_encoder/model.safetensors",
+      "bytes": 3689912664,
+      "sha256": "657723e09f46a7c3957df651601029f66b1748afb12b419816330f16ed45d64d"
+    },
+    {
+      "path": "scheduler/scheduler_config.json",
+      "bytes": 229,
+      "sha256": "5ba056e705a3317f60d79a3756a3409b0a53f1129b76a6aa5097ce9f513d143e"
+    },
+    {
+      "path": "prior/config.json",
+      "bytes": 252,
+      "sha256": "e36f9ae41677b87a8ca72853f1246704228c49c280adcfa8a8e100ef47d2ee5a"
+    },
+    {
+      "path": "prior/diffusion_pytorch_model.safetensors",
+      "bytes": 4104940968,
+      "sha256": "ab139b2df9e40ed0b1eda8dc6270a139a796c5fa3af76cd6b0573f620dca6dde"
+    }
+  ],
+  "totalBytes": 10574964619
+}

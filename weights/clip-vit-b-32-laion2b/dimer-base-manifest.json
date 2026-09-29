@@ -1,0 +1,55 @@
+{
+  "format": "dimer_hf_snapshot",
+  "formatVersion": 1,
+  "modelKey": "clip-vit-b-32-laion2b",
+  "modelId": "laion/CLIP-ViT-B-32-laion2B-s34B-b79K",
+  "revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7464,
+      "sha256": "d0600101ba66849bd84eeae14e0b1ccd56cd962ea94aec5d60c415d9ce4e5f28"
+    },
+    {
+      "path": "config.json",
+      "bytes": 4355,
+      "sha256": "1284cbff35169abb23a1c5525a8b0f543c7bd191d4b9aed63880c1571bc4191c"
+    },
+    {
+      "path": "merges.txt",
+      "bytes": 524618,
+      "sha256": "f1cd414c2d113a28b296afc0fd66ae854c0e0c34d5de373a2f5b7f62e0c02344"
+    },
+    {
+      "path": "model.safetensors",
+      "bytes": 605157884,
+      "sha256": "74813fbcdc750f235c9784c367ca1394d2a5c25eb0aac92761752ac239db7cff"
+    },
+    {
+      "path": "preprocessor_config.json",
+      "bytes": 316,
+      "sha256": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd"
+    },
+    {
+      "path": "special_tokens_map.json",
+      "bytes": 389,
+      "sha256": "f8c0d6c39aee3f8431078ef6646567b0aba7f2246e9c54b8b99d55c22b707cbf"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 2224041,
+      "sha256": "b556ac8c99757ffb677208af34bc8c6721572114111a6e0aaf5fa69ff0b8d842"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 904,
+      "sha256": "e19f34ef773563fb695f96cfcae1e4c7b112ab6ad532f6962061df5242d924f0"
+    },
+    {
+      "path": "vocab.json",
+      "bytes": 862328,
+      "sha256": "5047b556ce86ccaf6aa22b3ffccfc52d391ea4accdab9c2f2407da5b742d4363"
+    }
+  ],
+  "totalBytes": 608782299
+}

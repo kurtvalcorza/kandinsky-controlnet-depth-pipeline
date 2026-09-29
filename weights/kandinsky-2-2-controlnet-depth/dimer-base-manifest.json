@@ -1,0 +1,45 @@
+{
+  "format": "dimer_hf_snapshot",
+  "formatVersion": 1,
+  "modelKey": "kandinsky-2-2-controlnet-depth",
+  "modelId": "kandinsky-community/kandinsky-2-2-controlnet-depth",
+  "revision": "08632524a2b7e3bed39a7901d92cdd07e37544d0",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 9881,
+      "sha256": "dd12e782065c2985c417c0de4f53615d0188ab60f0853d1034e87c9f2821cf2c"
+    },
+    {
+      "path": "model_index.json",
+      "bytes": 260,
+      "sha256": "3b275988ddabc0ab143c6b9f17811193c6e7fd996fdf3a089f6aa9f7d5e4ad7e"
+    },
+    {
+      "path": "movq/config.json",
+      "bytes": 660,
+      "sha256": "b7448f3ea8aecf233629b20c1f606887e22244656edcee1be6a419079717a23e"
+    },
+    {
+      "path": "movq/diffusion_pytorch_model.safetensors",
+      "bytes": 271380364,
+      "sha256": "43a5860fea195a7116f2471396c5cc9535fade9b63c4857d8a192ffd924b7002"
+    },
+    {
+      "path": "scheduler/scheduler_config.json",
+      "bytes": 317,
+      "sha256": "b0900b16ee3e47c7b1e3c3fda579835d8dbc8bb5ba8434395412fed5c732c597"
+    },
+    {
+      "path": "unet/config.json",
+      "bytes": 1670,
+      "sha256": "29dcb862031753804e9b600da1c26e79ec83239c43b835e5a74f06548ab3434e"
+    },
+    {
+      "path": "unet/diffusion_pytorch_model.safetensors",
+      "bytes": 5013798992,
+      "sha256": "6549f8c8471357ed8ed6b700a80ffdd8fe45bd5b54f4c486d7f81ac9fe5f343b"
+    }
+  ],
+  "totalBytes": 5285192144
+}
