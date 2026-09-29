@@ -15,7 +15,7 @@ Card Specification 1.2, and a standalone, guided `E2E` tutorial at DIMER Noteboo
 - Revision: `08632524a2b7e3bed39a7901d92cdd07e37544d0` — the head of the upstream repository's **open, unmerged
   pull request #5** (safetensors conversion by patrickvonplaten). The upstream `main` branch
   (`4ecd717e8c9086cf4a16ca28b64894f70a42cd08`) ships only pickled `.bin` weights, which this package never loads.
-  Equivalence of the conversion to `main` is **pending**: see `tools/verify_conversion.py` and `docs/WEIGHTS.md`.
+  The conversion is bit-identical to `main` (checked by `tools/verify_conversion.py`; see `docs/WEIGHTS.md`).
 - Prior: `kandinsky-community/kandinsky-2-2-prior` at `9fc51ad5732afc5d031724219d22e6c42179c5a8`
 - Depth estimator: `Intel/dpt-large` at `bc15f29aa3a80d532f2ed650b5e16ac48d8958f9`, the `transformers` 5.17.0
   `depth-estimation` default, loaded explicitly by id and revision
@@ -95,8 +95,8 @@ tensor scope and digest before deserialising.
 
 `python tools/verify_conversion.py` downloads `main`'s `.bin` files and the pinned safetensors at their exact commits,
 verifies their SHA-256, and compares every tensor (keys, shapes, dtypes, `torch.equal`). It needs `torch`,
-`safetensors` and `huggingface-hub`, about 11 GB of disk and no GPU. It has not been run yet; its result will be
-recorded in `docs/release-verification.md`.
+`safetensors` and `huggingface-hub`, about 11 GB of disk and no GPU. Its 2026-09-29 run on a Kaggle CPU kernel
+found both components bit-identical; the record is in `docs/release-verification.md`.
 
 ## Tests
 
@@ -121,8 +121,8 @@ answers, a change-one-thing activity, troubleshooting and a conclusion scaffold)
 
 ## Release status
 
-**Candidate** — the notebook, the package and the static checks exist and pass; no execution with the pinned weights
-has been recorded, and the conversion check is pending. Promotion to Release-grade is governed by
+**Release-grade** — the tutorial notebook passed a clean-runtime `Run all` and the REL12 BYOD journey on a Kaggle T4 at
+`f4fe86a`, and the conversion check proved the pinned safetensors bit-identical to `main` (all on 2026-09-29); see
 `docs/release-verification.md` and `STATUS.md`.
 
 ## Licensing

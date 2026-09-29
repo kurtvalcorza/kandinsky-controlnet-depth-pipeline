@@ -1,7 +1,7 @@
 # Release verification
 
-`tutorials/kandinsky_controlnet_depth_colab.ipynb` (`E2E`, `GUIDED`, **standalone** carrier) is a **release candidate**
-until the exact notebook revision has executed top-to-bottom in a clean supported runtime **and** the pinned decoder
+`tutorials/kandinsky_controlnet_depth_colab.ipynb` (`E2E`, `GUIDED`, **standalone** carrier) stays a release
+candidate for any revision until that exact notebook revision has executed top-to-bottom in a clean supported runtime **and** the pinned decoder
 conversion has been checked against the upstream `main` weights. Unit tests, JSON validation, code-cell compilation,
 the generator parity checks and `tools/validate_release_assets.py` are necessary checks but are **not** runtime
 evidence under DIMER Notebook Specification 2.2 (REL8). This file is the durable release record.
@@ -65,15 +65,15 @@ CI runs `ruff check src tests tools`, the offline unit suite, `tools/validate_re
 
 | Date (UTC) | Commit / notebook blob | Executor | Path exercised | Wall | Outcome |
 |---|---|---|---|---|---|
-| — | — | — | No execution with the pinned weights has been recorded yet | — | — |
+| 2026-09-29 | `f4fe86ae19d99ad039554f1bcc075ccb47903492` / blob `671cf4c8f722e776e1854b4c98a20eaa0a26cbc1` | Kaggle batch kernel, Tesla T4 (15,360 MiB), Python 3.12.13, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`; notebook fetched at the commit and blob-verified, run in a fresh interpreter with `nbclient`, Hugging Face cache empty at start | Default `Run all` path, form fields at their defaults (`USE_BYOD = False`, `BYOD_PATH = ''`) | 831.5 s | **PASSED** — 12/12 code cells, 0 errors; the install cell's restart guard fired once (preloaded `numpy`, `protobuf`, `cuda-bindings`) and the kernel was restarted and re-run from the top. Held-out test `denoising_mse` 0.072207 (frozen) → 0.071615 (adapted); `depth_correlation` 0.864233 → 0.858579 (mismatched-hint baseline 0.25601); `depth_aligned_mae` 0.102967 → 0.108653 (baseline 0.241902); `label_accuracy` 0.75 → 0.8333 (real photographs 0.9167). Reload parity: `denoising_mse_diff` 0.0, `mean_abs_pixel_diff` 0.0. One run on 12 held-out photographs; sample-sanity evidence, not a benchmark |
+| 2026-09-29 | `f4fe86ae19d99ad039554f1bcc075ccb47903492` / blob `671cf4c8f722e776e1854b4c98a20eaa0a26cbc1` | Kaggle batch kernel, Tesla T4 (15,360 MiB), Python 3.12.13, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`; notebook fetched at the commit and blob-verified, run in a fresh interpreter with `nbclient`, Hugging Face cache empty at start | REL12 BYOD journey: in the executed copy only (not committed), `USE_BYOD = True` and `BYOD_PATH` = a zip built in the kernel from 12 CC0 research-grade iNaturalist photographs (6 Northern Cardinal, 6 Blue Jay, 12 observers, not in the sample corpus), each checked against a pinned SHA-256; the committed cell source was checked by SHA-256 before the edit. After `Run all`, one appended harness cell re-ran the committed Section 4 source against two incompatible zips | 697.7 s | **PASSED** — 13/13 code cells, 0 errors. Positive: 12 records split 8 / 2 / 2 by caption and carried through depth hints, adaptation, evaluation, generation, export and reload (`denoising_mse_diff` 0.0, `mean_abs_pixel_diff` 0.0); `depth_correlation` 0.818885 → 0.841563 (baseline 0.423756). Negative: a `captions.csv` without `caption` was refused with `captions.csv is missing columns ['caption']`, and a 200 × 200 image with `records[0]: image sides must be within 256..4096 px, got (200, 200)`, both before any model ran on them. With one test photograph per caption these numbers show that the path runs, not how well it performs |
 
 ## Recorded conversion checks
 
 | Date (UTC) | Commit | Executor | Components | Outcome |
 |---|---|---|---|---|
-| — | — | — | `tools/verify_conversion.py` has not been run yet | pending |
+| 2026-09-29 | `f4fe86ae19d99ad039554f1bcc075ccb47903492` (script blob `c8640b27f0b3b2c3d87cf8a6745325b568f0989d`) | Kaggle CPU kernel, Python 3.12.13, `torch 2.10.0+cpu`; script fetched at the commit and blob-verified | UNet: 740/740 tensors, 1,253,429,212 elements; MoVQ: 431/431 tensors, 67,832,495 elements | **PASSED** — identical key sets, shapes, dtypes and `torch.equal` values for both components; every download matched its recorded SHA-256 (UNet `.bin` `3418cd4f…` vs safetensors `6549f8c8…`; MoVQ `.bin` `772e0973…` vs safetensors `43a5860f…`) |
 
 ## Current status
 
-**Candidate.** Static validation, parity and the offline unit suite pass. Both the conversion check and a clean-runtime
-execution are outstanding.
+**Release-grade.** At `f4fe86a` (notebook blob `671cf4c8f722`) the default `Run all` path passed on a clean Kaggle T4, the BYOD branch accepted representative photographs through `BYOD_PATH`, reached adaptation, evaluation, export and reload, and refused two incompatible inputs with messages naming the failed contract (REL12), and the conversion check proved the pinned safetensors bit-identical to `main`'s `.bin` weights. All three runs are recorded above.

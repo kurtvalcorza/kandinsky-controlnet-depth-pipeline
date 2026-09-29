@@ -20,7 +20,7 @@ date_published_source: "Hugging Face Hub commit `741f080424a3450bc27ea13c591a877
 > ⚠️ **Provided for research, training, and evaluation purposes only.** Model weights are fetched unmodified from the Hugging Face Hub under their upstream Apache-2.0 licence; the accompanying code and notebook are Apache-2.0. Nothing here is validated for production, and no benchmark result is claimed.
 
 > [!IMPORTANT]
-> **The decoder weights come from an open, unmerged conversion pull request.** The upstream `main` branch (commit `4ecd717e8c9086cf4a16ca28b64894f70a42cd08`) ships only pickled `.bin` files. This pipeline pins the safetensors files of pull request #5, opened by patrickvonplaten, by its commit `08632524a2b7e3bed39a7901d92cdd07e37544d0`. Whether that conversion is bit-identical to the `main` weights is **not yet verified**. `tools/verify_conversion.py` performs that check, and its result is pending.
+> **The decoder weights come from an open, unmerged conversion pull request.** The upstream `main` branch (commit `4ecd717e8c9086cf4a16ca28b64894f70a42cd08`) ships only pickled `.bin` files. This pipeline pins the safetensors files of pull request #5, opened by patrickvonplaten, by its commit `08632524a2b7e3bed39a7901d92cdd07e37544d0`. `tools/verify_conversion.py` checked that conversion against the `main` weights: a Kaggle CPU run of `tools/verify_conversion.py` on 2026-09-29 found identical key sets, shapes, dtypes and values for all 740 UNet tensors (1,253,429,212 elements) and all 431 MoVQ tensors (67,832,495 elements).
 
 ---
 
@@ -168,7 +168,7 @@ Foreseeable misuse includes images that follow the exact layout of a real scene 
 
 1. **Supply-chain integrity:** `MODEL_REVISION`, `PRIOR_REVISION`, `DEPTH_REVISION` and `SCORER_REVISION` are immutable 40-character commit hashes. Every file's byte count and SHA-256 must match its committed `dimer-base-manifest.json` before loading. Staging refuses a manifest that names a different model or revision, and refuses any revision that is not a 40-character commit.
 2. **No executable serialization:** every weight file is safetensors, and the snapshot check rejects `.bin` and other code-bearing types. No pickle is deserialized, and no Hub-hosted code runs. The depth estimator is loaded by pinned id and revision, never as a task default.
-3. **Conversion check:** `tools/verify_conversion.py` compares the pinned safetensors with the `main` `.bin` files tensor by tensor. It loads the `.bin` files with `torch.load(weights_only=True)`. Its result is pending.
+3. **Conversion check:** `tools/verify_conversion.py` compares the pinned safetensors with the `main` `.bin` files tensor by tensor. It loads the `.bin` files with `torch.load(weights_only=True)`. On 2026-09-29 it found every UNet and MoVQ tensor identical (see *Verification records*).
 4. **Adapter integrity:** `load_adapter` refuses an artifact whose `format` is not `org.valcorza.kandinsky-controlnet-depth.adapter.v1`. It also refuses a different base model or depth estimator, a tensor set outside the LoRA scope, or an `adapter.safetensors` digest that differs from its manifest.
 5. **Input integrity:** `validate_dataset`, `validate_prompts` and `validate_hint` reject malformed records, prompts and hints before any model runs.
 6. **Bounded adaptation:** `adapt` refuses more than 50 epochs or a learning rate above `1e-2`, and keeps the epoch with the lowest validation loss.
@@ -184,7 +184,7 @@ The pipeline has no content filter or safety checker on prompts or generated ima
 4. **Bias amplification.** Web-trained generators reproduce stereotypes, and an adapter trained on a skewed set of images narrows the output further. The groups depicted and the viewers bear the harm.
 5. **Training-data leakage.** A LoRA trained on a few images can reproduce them closely, and the data subjects and rights holders bear the harm.
 6. **Automation bias.** Users may read a rising CLIP score, a high depth correlation or a falling loss as proof of better images. The downstream audience then bears the cost of worse outputs.
-7. **Unverified conversion.** If the pinned safetensors differed from the upstream `.bin` weights, outputs would differ from the upstream model. Users who compare against upstream results would bear that harm until the pending check is recorded.
+7. **Conversion from an unmerged pull request.** The pinned safetensors are bit-identical to the upstream `.bin` weights at `4ecd717e`, so outputs match the upstream checkpoint. The files still come from a pull request the upstream maintainers have not merged; if upstream later publishes a different checkpoint, results obtained with this pin will differ from it. Users comparing against upstream releases bear that harm.
 
 ###### Use cases
 
@@ -206,7 +206,7 @@ The following uses are unacceptable even where the pipeline would work:
 - Manifest: `weights/kandinsky-2-2-controlnet-depth/dimer-base-manifest.json`, format `dimer_hf_snapshot` v1, 7 files, `totalBytes` 5285192144
 - UNet `unet/diffusion_pytorch_model.safetensors` (5,013,798,992 bytes) SHA-256: `6549f8c8471357ed8ed6b700a80ffdd8fe45bd5b54f4c486d7f81ac9fe5f343b`; 1,253,429,212 parameters in 740 tensors
 - MoVQ `movq/diffusion_pytorch_model.safetensors` (271,380,364 bytes) SHA-256: `43a5860fea195a7116f2471396c5cc9535fade9b63c4857d8a192ffd924b7002`; this digest is identical to the MoVQ in the pinned `kandinsky-community/kandinsky-2-2-decoder` snapshot
-- Conversion equivalence: byte-level equivalence of the UNet and MoVQ conversions to the `main` `.bin` files is **not yet verified**; `tools/verify_conversion.py` is the pending check
+- Conversion equivalence: the pinned safetensors are bit-identical to the `main` `.bin` weights: a Kaggle CPU run of `tools/verify_conversion.py` on 2026-09-29 found identical key sets, shapes, dtypes and values for all 740 UNet tensors (1,253,429,212 elements) and all 431 MoVQ tensors (67,832,495 elements)
 - Prior: `kandinsky-community/kandinsky-2-2-prior` at `9fc51ad5732afc5d031724219d22e6c42179c5a8`; manifest `weights/kandinsky-2-2-prior/dimer-base-manifest.json`, 14 files, `totalBytes` 10574964619
 - Depth estimator: `Intel/dpt-large` at `bc15f29aa3a80d532f2ed650b5e16ac48d8958f9` (Apache-2.0), the default model of the `transformers` 5.17.0 `depth-estimation` task, loaded explicitly; manifest `weights/dpt-large/dimer-base-manifest.json`, 4 files, `totalBytes` 1367465032
 - Scorer (evaluation only): `laion/CLIP-ViT-B-32-laion2B-s34B-b79K` at `1a25a446712ba5ee05982a381eed697ef9b435cf` (MIT); manifest `weights/clip-vit-b-32-laion2b/dimer-base-manifest.json`, 9 files, `totalBytes` 608782299
@@ -228,14 +228,41 @@ The following uses are unacceptable even where the pipeline would work:
 |---|---|
 | Licence | Apache-2.0 for the decoder, prior and depth estimator; MIT for the scorer; code Apache-2.0 |
 | Weights | About 17.2 GB served (5.29 GB decoder, 10.57 GB prior, 1.37 GB depth estimator), plus the 0.6 GB evaluation scorer |
-| Decoder source | safetensors from open pull request #5, pinned by commit; conversion equivalence pending |
+| Decoder source | safetensors from open pull request #5, pinned by commit; bit-identical to `main`'s `.bin` weights (checked 2026-09-29) |
 | Remote code | Not required: standard `diffusers`, `transformers` and `peft` classes |
 | Executable serialization | None loaded: safetensors only |
 | Runtime | PyTorch 2.14, float16 on CUDA |
 
 ## Verification records
 
-No execution of this pipeline or its notebook with the pinned weights has been recorded yet. `docs/release-verification.md` holds the procedure and the record table. The conversion check `tools/verify_conversion.py` has not been run.
+`docs/release-verification.md` holds the procedure and every record. Three executions are recorded, all on 2026-09-29 at commit `f4fe86a`.
+
+The conversion check:
+
+- **Date:** 2026-09-29
+- **Subject:** `tools/verify_conversion.py` at commit `f4fe86a`, blob `c8640b27f0b3` (full identifiers in `docs/release-verification.md`)
+- **Runtime:** Kaggle CPU kernel, Python 3.12.13, `torch 2.10.0+cpu`
+- **Procedure:** the script was fetched at that commit and blob-verified, then run. It downloaded `main`'s `.bin` files and the pinned safetensors at their exact commits and verified every download against its recorded SHA-256.
+- **Observed result:** all 740 UNet tensors (1,253,429,212 elements) and all 431 MoVQ tensors (67,832,495 elements) have identical key sets, shapes, dtypes and values.
+- **Caveats:** this proves the files are the same checkpoint. It says nothing about the checkpoint's quality.
+
+The clean-runtime run of the tutorial notebook:
+
+- **Date:** 2026-09-29
+- **Subject:** `tutorials/kandinsky_controlnet_depth_colab.ipynb` at commit `f4fe86a`, blob `671cf4c8f722`
+- **Runtime:** Kaggle batch kernel on a Tesla T4 (15,360 MiB), Python 3.12.13, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`
+- **Procedure:** the notebook was fetched at that commit and run with `Run all` in a fresh interpreter, with an empty Hugging Face cache, no repository checkout and the form fields at their defaults. The install cell's restart guard fired once because the kernel had preloaded older `numpy` and `protobuf`, and the kernel was restarted and run again from the top.
+- **Observed result:** 12 of 12 code cells ran without error in 831.5 s. Held-out test `denoising_mse` was 0.072207 for the frozen model and 0.071615 after adaptation. `depth_correlation` was 0.864 frozen and 0.859 adapted, against 0.256 for a mismatched hint. `depth_aligned_mae` was 0.103 frozen and 0.109 adapted, against 0.242 for a mismatched hint. `label_accuracy` rose from 0.75 to 0.8333, against 0.9167 for the real photographs. The reloaded adapter reproduced the in-memory results exactly.
+- **Caveats:** one run on one seeded split with 12 held-out photographs. This is sample-sanity evidence, not a benchmark.
+
+The BYOD branch at the same commit:
+
+- **Date:** 2026-09-29
+- **Subject:** the same notebook and commit, with `USE_BYOD = True` and `BYOD_PATH` set in the executed copy only
+- **Runtime:** as above
+- **Procedure:** a zip of 12 CC0 research-grade iNaturalist photographs (6 Northern Cardinal, 6 Blue Jay) with a `captions.csv` was built inside the kernel, each photograph checked against a pinned SHA-256. After `Run all`, the committed Section 4 source was re-run against two incompatible zips.
+- **Observed result:** 13 of 13 code cells ran without error in 697.7 s. The 12 records were split 8 / 2 / 2 by caption and passed through depth-hint extraction, fine-tuning, evaluation, export and an exact reload. A `captions.csv` without its `caption` column and a 200 × 200 image were each refused with a message naming the failed rule, before any model ran on them.
+- **Caveats:** with one test photograph per caption, these numbers show that the BYOD path runs, not how well the model adapts to such data.
 
 The offline unit tests, the static validator `tools/validate_release_assets.py`, and a CPU test that runs the `diffusers` and `peft` code paths on a tiny randomly initialised model are checks of the code, not executions of the pipeline. The tutorial follows DIMER Notebook Specification 2.2 as a standalone notebook.
 

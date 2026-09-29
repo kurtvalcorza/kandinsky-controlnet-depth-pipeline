@@ -30,9 +30,9 @@ SFconvertbot, carries safetensors files with the same two SHA-256 digests.
 
 Both pull requests are parented on commits after 2023-07-13, when the current UNet `.bin` (digest `3418cd4f…`) was
 uploaded in commit `741f080424a3450bc27ea13c591a8773ad09daec`. The earlier 2023-06-28 upload had a different digest.
-The safetensors are therefore conversions of the current checkpoint by provenance. **Byte-level equivalence of the
-converted tensors to the `main` `.bin` files is not yet verified.** `tools/verify_conversion.py` is the pending
-check: it downloads both at their exact commits, verifies the digests above, loads the `.bin` files with
+The safetensors are therefore conversions of the current checkpoint by provenance, and they are **bit-identical to the
+`main` `.bin` files**: on 2026-09-29 a Kaggle CPU run of `tools/verify_conversion.py` at `f4fe86a` found identical key
+sets, shapes, dtypes and values for all 740 UNet tensors and all 431 MoVQ tensors. The script downloads both at their exact commits, verifies the digests above, loads the `.bin` files with
 `torch.load(weights_only=True)` and asserts identical key sets, shapes, dtypes and `torch.equal` values for the UNet
 and the MoVQ. It needs about 11 GB of disk and is meant for a disposable CPU kernel.
 
