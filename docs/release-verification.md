@@ -13,30 +13,80 @@ CI runs `ruff check src tests tools`, the offline unit suite, `tools/validate_re
 
 - notebook JSON parses; every code cell compiles as plain Python (no `%`/`!` magics); no persisted outputs or execution
   counts; no placeholder markers; every code cell is preceded by an explanatory markdown cell;
-- exactly one tutorial notebook, registered in `tutorials/README.md` with its `E2E` profile, spec `2.2` and the
-  standalone carrier; `metadata.dimer` declares the profile, spec `2.2`, `GUIDED` mode, `standalone: true` and
-  `generated_from`;
-- the standalone carrier (ST1–ST8, PAR1–PAR4): no clone, repository install or repository import; one cell per carried
-  module equal to its source after the documented rewrite; the inline `MANIFEST`, `PRIOR_MANIFEST`, `DEPTH_MANIFEST`
-  and `SCORER_MANIFEST` equal to the committed manifests; inline `PINS` equal to `pyproject.toml`; the notebook
-  byte-identical (on LF) to the generator output;
-- the §3.5 guided layer: audience, how-to-use, roadmap, input → model → output, glossary, predictions, what-to-notice
-  notes, check-your-reasoning answers, the change-one-thing activity, section types, troubleshooting, the conclusion
-  scaffold, and the install, carried-module and model cells titled **Infrastructure** and collapsed (`cellView: form`);
-- the public-API calls of every stage, the expected `outputs/` paths, the provenance fields, the gated-off BYOD default
-  with its location field, and the forbidden patterns (mutable revisions, direct `huggingface_hub` / `safetensors` /
-  `diffusers` / `transformers` / `peft` use outside the carried modules, `torch.load(` without `weights_only=True`,
-  `trust_remote_code=True`);
+- exactly one tutorial notebook, registered in `tutorials/README.md` with its `E2E` profile, spec `2.2`, the
+  standalone carrier and the isolated environment; `metadata.dimer` declares the profile, spec `2.2`, `GUIDED` mode,
+  `standalone: true`, `requires_dimer_worker: false` and `generated_from` (repository, revision, package-module
+  SHA-256, per-file hashes, generator);
+- the carrier (ST1–ST8, SRC4, PAR1–PAR4): exactly one carrier cell whose `CARRIED_FILES` equal the repository files
+  named by the template (the four package modules, `tools/tutorial_stages.py`, `tutorials/requirements-colab.lock.txt`,
+  the four snapshot manifests, `LICENSE`) plus the generated `source.json`; every `CARRIED_HASHES` entry is the SHA-256
+  of its text and is recorded in the cell and notebook metadata; the cell writes each file and raises on a hash
+  mismatch; the notebook is byte-identical (on LF) to `tools/build_notebook.py` output for its recorded revision;
+- the lock (ENV1, ENV2): it pins every `pyproject.toml` runtime pin at the same version, every entry carries
+  `--hash=sha256:`, and its header records `--generate-hashes --only-binary :all:` and the manylinux x86_64 target;
+- the isolated install (RUN10, ENV6, §25.13): no kernel cell runs `pip` except `uv pip install --python <isolated
+  env> --require-hashes`; no `sys.executable`, `importlib`, `pip install` or `-m pip`; kernel imports limited to the
+  standard library, `IPython.display` and `google.colab`; downloads (`urllib`) only in the install cell; `UV_URL`,
+  `UV_BYTES` and a 64-hex `UV_SHA256` equal to the template's pinned `uv` wheel; `--managed-python` CPython 3.12.12,
+  `--only-binary :all:`, the Hugging Face token and `PYTHONPATH` removal, `MPLBACKEND='Agg'`, the CUDA check in the
+  isolated environment, and a `run_stage` that re-raises the stage's own error type and message;
+- the learner path: the stages called in order (`weights`, `prepare`, `encode`, `frozen`, `activity`, `adapt`,
+  `evaluate`, `reload`); both BYOD form fields exactly as `USE_BYOD = False  # @param {type:"boolean"}` and
+  `BYOD_PATH = ''  # @param {type:"string"}` in the cell that runs `prepare` (EXE1/EXE2); `USE_BYOD` and
+  `ACTIVITY_HINT` each assigned once; no learner prose that asks for a runtime restart;
+- the carried stage runner's required calls (`KandinskyDepthPipeline.from_pretrained(..., depth_dir=..., use_lora=True)`,
+  staging and verification of the four snapshots, `fetch_sample_dataset`, `load_byod_dataset`, `dataset_manifest`,
+  `write_dataset_csv`, `validate_dataset` with the refusal probes, the dataset-digest re-check, `compute_hints`,
+  `encode_prompts`, `release_prior` and the hint and prompt caches, the frozen evaluation, generation, CLIP scoring with
+  `real_photo_baseline` and depth fidelity with `real_photo_depth_ceiling`, the flat-hint activity scored with
+  `depth_fidelity_from_maps`, `pipe.adapt` with its explicit hyperparameters, the in-memory reference values,
+  `save_artifact`, the fresh-process `from_artifact` evaluation with the guaranteed checks and the depth comparison
+  rows, the second fresh-process reload with the parity check, the new-prompt generation, the provenance fields
+  `safetensors_only: True`, `remote_code_executed: False` and the data base URL, the error record), and the expected
+  exports;
+- `MODEL_ID`/`MODEL_REVISION` never rebound in a kernel cell and the revision absent from every kernel cell (it lives in
+  the carried package and manifests); forbidden patterns in the kernel and in every carried file: credential-in-URL,
+  `git clone` / `github.com`, an editable install, a mutable `revision='main'`, `trust_remote_code=True`, unsafe
+  deserialization, `extractall`, magics, `--no-binary` / `--no-build-isolation` / `--trusted-host` /
+  `--extra-index-url`; and in the kernel only, a repository-package import;
+- the §3.5 guided layer: audience, how-to-use (including where the code runs), roadmap, input → model → output,
+  glossary, predictions, what-to-notice notes, check-your-reasoning answers, the change-one-thing activity, section
+  types, troubleshooting, the conclusion scaffold, the four infrastructure cells titled **Infrastructure** and
+  collapsed (`cellView: form`, `source_hidden`), and the learner cells not collapsed;
 - the identity string and revision in `README.md`, `MODEL_CARD.md` and `docs/WEIGHTS.md`, and every SHA-256 digest and
   byte count quoted there traced to a manifest or a labelled allowlist entry;
 - `MODEL_CARD.md` front matter, single H1, the 19 required headings in order, and the immutable provenance section.
+
+In CI, which has no `torch`, `tests/test_tutorial_stages.py` runs its kernel-side tests (the generated carrier writes
+and verifies every file, and `run_stage` re-raises an invalid BYOD zip's refusal text) and skips the CPU pre-flight.
+
+## CPU pre-flight of the stage runner (not runtime evidence)
+
+On 2026-09-30, on Windows (CPython 3.12, `torch 2.14.0+cpu`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`,
+in a scratch virtual environment), `tests/test_tutorial_stages.py` passed 9 of 9:
+
+- the generated carrier cell wrote the 11 carried files and verified each against `CARRIED_HASHES`;
+- the generated `run_stage`, driving the carried `tutorial_stages.py` in a subprocess, raised
+  `RuntimeError: Stage 'prepare' failed (exit 2): ValueError: captions.csv is missing columns ['caption']` for a zip
+  without a `caption` column, and `… ValueError: records[0]: image sides must be within 256..4096 px, got (200, 200)`
+  for 200 × 200 images;
+- every stage (`weights`, `prepare`, `encode`, `frozen`, `activity`, `adapt`, `evaluate`, `reload`) ran in order on CPU
+  against a stub UNet/MoVQ (from `tests/test_adaptation.py`), a stub prior, a stub depth estimator, a stub CLIP scorer,
+  a stub generator and 12 synthetic records, each stage building its own pipeline so that everything crossed over
+  through the run directory; all expected exports were written, reload parity held within tolerance, the activity
+  accepted `flat`, `mismatched` and `own` and refused any other hint with the notebook's message, and a stage run
+  before `prepare` was refused with `data.json is missing`.
+
+This proves the stage plumbing and the file hand-offs only. The real snapshot staging, the real prior, UNet, MoVQ, DPT
+estimator, diffusers generation and CLIP scorer, the `uv` bootstrap and the locked install were not exercised: they
+need a Linux x86_64 GPU runtime.
 
 ## Executor paths
 
 | Path | Runtime | Role |
 |---|---|---|
 | Google Colab (supported user path) | Colab GPU runtime (T4 or better, ≥ 15 GB) | The runtime the tutorial is written for; a clean top-to-bottom run is promotion evidence |
-| Kaggle kernel or equivalent fresh container | Fresh GPU container, Python 3.12; the committed notebook executed verbatim with no repository checkout | Clean-room executor of the same class; promotion evidence |
+| Kaggle kernel or equivalent fresh container | Fresh Linux x86_64 GPU container; the committed notebook executed verbatim with no repository checkout | Clean-room executor of the same class; promotion evidence |
 | Kaggle CPU kernel | Fresh CPU container with `torch`, `safetensors`, `huggingface-hub` | Runs `tools/verify_conversion.py`; conversion evidence only |
 
 ## Conversion check procedure
@@ -49,26 +99,37 @@ CI runs `ruff check src tests tools`, the offline unit suite, `tools/validate_re
 ## Supported notebook verification procedure
 
 1. Resolve the exact commit under review and confirm static CI is green.
-2. Open that notebook revision in a new GPU runtime with **no repository checkout**, an empty Hugging Face cache and no
-   pre-staged files under `weights/`; the runtime needs about 25 GB of free disk and a GPU of at least 15 GB.
-3. Run the notebook top-to-bottom with every form field at its default (`USE_BYOD = False`, `BYOD_PATH = ''`,
-   `STEPS = 20`, `GUIDANCE_SCALE = 4.0`, `ACTIVITY_HINT = 'flat'`, `EPOCHS = 4`, `LEARNING_RATE = 1e-4`,
-   `BATCH_SIZE = 1`).
-4. Verify that Section 1 reports `NOTEBOOK_SOURCE.repository_revision` equal to `metadata.dimer.generated_from.revision`
-   and that the installed versions equal the inline `PINS`.
-5. Verify every stage completes, including both assertions in Section 9 and the reload-parity assertion in Section 10.
+2. Open that notebook revision in a new Linux x86_64 GPU runtime with **no repository checkout**, an empty Hugging
+   Face cache and no pre-staged files under `weights/`; the runtime needs about 31 GB of free disk and a GPU of at
+   least 15 GB.
+3. Run the notebook top-to-bottom with `Run all` and **no runtime restart**, with every form field at its default
+   (`USE_BYOD = False`, `BYOD_PATH = ''`, `NEW_PROMPT` unchanged, `STEPS = 20`, `GUIDANCE_SCALE = 4.0`,
+   `ACTIVITY_HINT = 'flat'`, `EPOCHS = 4`, `LEARNING_RATE = 1e-4`, `BATCH_SIZE = 1`).
+4. Verify that the Section 2 carrier reports the revision recorded in `metadata.dimer.generated_from`, that the
+   isolated environment reports CPython 3.12.12 and the locked versions (`torch 2.14.0`, `diffusers 0.40.0`,
+   `transformers 5.17.0`, `peft 0.21.0`) with `'cuda': True`, and that the kernel's own packages were not changed.
+5. Verify every stage completes, including the two guaranteed checks of the `evaluate` stage (Section 9) and the
+   reload-parity check of the `reload` stage (Section 10).
 6. Record the notebook Git blob id, commit, runtime, wall time and the observed metrics below. Record no secrets.
 7. For BYOD evidence, rerun Section 4 onward with `USE_BYOD = True` and `BYOD_PATH` set to a valid zip, and once with an
    invalid zip to record the refusal.
 
 ## Recorded executions
 
+The first three rows record the current notebook, which runs every stage in an isolated hash-locked environment, at `c86e3fe`. The rows after them record the previous notebook, which pip-installed its pins into the kernel (**pre-fix**) and needed a manual restart on hosted runtimes; they remain evidence for the stage logic both revisions share.
+
 | Date (UTC) | Commit / notebook blob | Executor | Path exercised | Wall | Outcome |
 |---|---|---|---|---|---|
-| 2026-09-29 | `f4fe86ae19d99ad039554f1bcc075ccb47903492` / blob `671cf4c8f722e776e1854b4c98a20eaa0a26cbc1` | Kaggle batch kernel, Tesla T4 (15,360 MiB), Python 3.12.13, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`; notebook fetched at the commit and blob-verified, run in a fresh interpreter with `nbclient`, Hugging Face cache empty at start | Default `Run all` path, form fields at their defaults (`USE_BYOD = False`, `BYOD_PATH = ''`) | 831.5 s | **PASSED** — 12/12 code cells, 0 errors; the install cell's restart guard fired once (preloaded `numpy`, `protobuf`, `cuda-bindings`) and the kernel was restarted and re-run from the top. Held-out test `denoising_mse` 0.072207 (frozen) → 0.071615 (adapted); `depth_correlation` 0.864233 → 0.858579 (mismatched-hint baseline 0.25601); `depth_aligned_mae` 0.102967 → 0.108653 (baseline 0.241902); `label_accuracy` 0.75 → 0.8333 (real photographs 0.9167). Reload parity: `denoising_mse_diff` 0.0, `mean_abs_pixel_diff` 0.0. One run on 12 held-out photographs; sample-sanity evidence, not a benchmark |
-| 2026-09-29 | `f4fe86ae19d99ad039554f1bcc075ccb47903492` / blob `671cf4c8f722e776e1854b4c98a20eaa0a26cbc1` | Kaggle batch kernel, Tesla T4 (15,360 MiB), Python 3.12.13, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`; notebook fetched at the commit and blob-verified, run in a fresh interpreter with `nbclient`, Hugging Face cache empty at start | REL12 BYOD journey: in the executed copy only (not committed), `USE_BYOD = True` and `BYOD_PATH` = a zip built in the kernel from 12 CC0 research-grade iNaturalist photographs (6 Northern Cardinal, 6 Blue Jay, 12 observers, not in the sample corpus), each checked against a pinned SHA-256; the committed cell source was checked by SHA-256 before the edit. After `Run all`, one appended harness cell re-ran the committed Section 4 source against two incompatible zips | 697.7 s | **PASSED** — 13/13 code cells, 0 errors. Positive: 12 records split 8 / 2 / 2 by caption and carried through depth hints, adaptation, evaluation, generation, export and reload (`denoising_mse_diff` 0.0, `mean_abs_pixel_diff` 0.0); `depth_correlation` 0.818885 → 0.841563 (baseline 0.423756). Negative: a `captions.csv` without `caption` was refused with `captions.csv is missing columns ['caption']`, and a 200 × 200 image with `records[0]: image sides must be within 256..4096 px, got (200, 200)`, both before any model ran on them. With one test photograph per caption these numbers show that the path runs, not how well it performs |
+| 2026-09-30 | `c86e3fe46b2597947a8f3d52e171c0321a90d23d` / blob `10145c0374408a493a284b985aeacc609bd57de0` | Google Colab, Tesla T4 (15,360 MiB); kernel Python 3.13.15; isolated environment: Python 3.12.12, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`, 68 hash-locked packages; environment set up in 100 s | Default `Run all` from a fresh runtime, form fields at their defaults | — | **PASSED** — 11/11 code cells in one pass (execution counts 1–11), 0 errors, no restart. Held-out test `denoising_mse` 0.072207 (frozen) → 0.071639 (adapted); `depth_correlation` 0.864233 → 0.859289 (mismatched-hint baseline 0.25601); `depth_aligned_mae` 0.102967 → 0.109994 (baseline 0.241902); `label_accuracy` 0.75 → 0.75 (real photographs 0.9167). Fresh-process reload parity: `denoising_mse_diff` 0.0, `mean_abs_pixel_diff` 0.0. The executed notebook's cell sources are identical to the committed notebook. Sample-sanity evidence, not a benchmark |
+| 2026-09-29 | `c86e3fe46b2597947a8f3d52e171c0321a90d23d` / blob `10145c0374408a493a284b985aeacc609bd57de0` | Kaggle batch kernel, Tesla T4 (15,360 MiB); isolated environment: Python 3.12.12, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`, 68 hash-locked packages; notebook fetched at the commit and blob-verified, run with `nbclient` in **strict single-pass mode** (a restart request fails the run), Hugging Face cache empty at start | Default `Run all` path | 1,156.2 s | **PASSED** — 11/11 code cells in one pass, 0 errors. Held-out test `denoising_mse` 0.072207 → 0.071621; `depth_correlation` 0.864233 → 0.859122 (baseline 0.25601); reload parity 0.0 / 0.0 |
+| 2026-09-29 | `c86e3fe46b2597947a8f3d52e171c0321a90d23d` / blob `10145c0374408a493a284b985aeacc609bd57de0` | as above, strict single pass | REL12 BYOD journey: in the executed copy only, `USE_BYOD = True` and `BYOD_PATH` = a zip built in the kernel from 12 pinned CC0 iNaturalist photographs (6 Northern Cardinal, 6 Blue Jay); then the committed BYOD cell was re-run against two incompatible zips | 1,120.9 s | **PASSED** — 12/12 code cells in one pass, 0 errors. Positive: 12 records carried through depth hints, adaptation, evaluation, export and a fresh-process reload (parity 0.0 / 0.0); `depth_correlation` 0.818885 → 0.847783 (baseline 0.423756). Negative: `Stage 'prepare' failed (exit 2): ValueError: captions.csv is missing columns ['caption']` and `… records[0]: image sides must be within 256..4096 px, got (200, 200)`, raised in the kernel before any model ran |
+| 2026-09-29 (pre-fix) | `f4fe86ae19d99ad039554f1bcc075ccb47903492` / blob `671cf4c8f722e776e1854b4c98a20eaa0a26cbc1` | Kaggle batch kernel, Tesla T4 (15,360 MiB), Python 3.12.13, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`; notebook fetched at the commit and blob-verified, run in a fresh interpreter with `nbclient`, Hugging Face cache empty at start | Default `Run all` path, form fields at their defaults (`USE_BYOD = False`, `BYOD_PATH = ''`) | 831.5 s | **PASSED** — 12/12 code cells, 0 errors; the install cell's restart guard fired once (preloaded `numpy`, `protobuf`, `cuda-bindings`) and the kernel was restarted and re-run from the top. Held-out test `denoising_mse` 0.072207 (frozen) → 0.071615 (adapted); `depth_correlation` 0.864233 → 0.858579 (mismatched-hint baseline 0.25601); `depth_aligned_mae` 0.102967 → 0.108653 (baseline 0.241902); `label_accuracy` 0.75 → 0.8333 (real photographs 0.9167). Reload parity: `denoising_mse_diff` 0.0, `mean_abs_pixel_diff` 0.0. One run on 12 held-out photographs; sample-sanity evidence, not a benchmark |
+| 2026-09-29 (pre-fix) | `f4fe86ae19d99ad039554f1bcc075ccb47903492` / blob `671cf4c8f722e776e1854b4c98a20eaa0a26cbc1` | Kaggle batch kernel, Tesla T4 (15,360 MiB), Python 3.12.13, `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0`, `peft 0.21.0`; notebook fetched at the commit and blob-verified, run in a fresh interpreter with `nbclient`, Hugging Face cache empty at start | REL12 BYOD journey: in the executed copy only (not committed), `USE_BYOD = True` and `BYOD_PATH` = a zip built in the kernel from 12 CC0 research-grade iNaturalist photographs (6 Northern Cardinal, 6 Blue Jay, 12 observers, not in the sample corpus), each checked against a pinned SHA-256; the committed cell source was checked by SHA-256 before the edit. After `Run all`, one appended harness cell re-ran the committed Section 4 source against two incompatible zips | 697.7 s | **PASSED** — 13/13 code cells, 0 errors. Positive: 12 records split 8 / 2 / 2 by caption and carried through depth hints, adaptation, evaluation, generation, export and reload (`denoising_mse_diff` 0.0, `mean_abs_pixel_diff` 0.0); `depth_correlation` 0.818885 → 0.841563 (baseline 0.423756). Negative: a `captions.csv` without `caption` was refused with `captions.csv is missing columns ['caption']`, and a 200 × 200 image with `records[0]: image sides must be within 256..4096 px, got (200, 200)`, both before any model ran on them. With one test photograph per caption these numbers show that the path runs, not how well it performs |
 
 ## Recorded conversion checks
+
+The conversion check runs `tools/verify_conversion.py`, which does not depend on the notebook; the record below stays
+valid for the isolated-environment notebook.
 
 | Date (UTC) | Commit | Executor | Components | Outcome |
 |---|---|---|---|---|
@@ -76,4 +137,4 @@ CI runs `ruff check src tests tools`, the offline unit suite, `tools/validate_re
 
 ## Current status
 
-**Candidate.** The notebook stops at its install cell on hosted runtimes that preload `numpy`, `protobuf` and `cuda-bindings` (Google Colab and Kaggle), because the pinned install replaces those loaded packages and the cell then asks for a manual runtime restart. Notebook Specification 2.2 RUN1 and RUN10 forbid a manual restart on the `Run all` path, so the tutorial is not release-ready. The Kaggle runs recorded in `docs/release-verification.md` completed only because the executor restarted the kernel automatically; they remain valid evidence for everything after the install cell. Found in a Colab `Run all` on 2026-09-29; the fix (an isolated, hash-locked environment for the tutorial stages) is in progress.
+**Release-grade.** At `c86e3fe` (notebook blob `10145c037440`) the notebook runs every stage in an isolated hash-locked environment and installs nothing into the kernel. Its default `Run all` path passed in one pass on Google Colab (T4) and on a clean Kaggle T4 in strict single-pass mode, and its BYOD branch passed the REL12 journey (representative photographs accepted and carried through depth hints, adaptation, evaluation, export and a fresh-process reload; two incompatible inputs refused with the validator's message). The conversion check recorded above proved the pinned safetensors bit-identical to `main`'s `.bin` weights.

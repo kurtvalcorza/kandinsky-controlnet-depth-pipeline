@@ -26,7 +26,7 @@ date_published_source: "Hugging Face Hub commit `741f080424a3450bc27ea13c591a877
 
 ## Interactive Colab Tutorials
 
-This pipeline provides a ready-to-run, self-contained Google Colab notebook. It carries the repository's code in its own cells and runs end to end without cloning the repository:
+This pipeline provides a ready-to-run, self-contained Google Colab notebook. It carries the repository's code in its own cells and runs end to end without cloning the repository. It installs nothing into the notebook kernel: every stage runs in an isolated environment built from a committed hash lock, so `Run all` needs no runtime restart:
 
 - **Guided End-to-End Depth-Conditioned Fine-Tuning Notebook**:  
   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/tutorials/kandinsky_controlnet_depth_colab.ipynb) [`kandinsky_controlnet_depth_colab.ipynb`](https://github.com/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/tutorials/kandinsky_controlnet_depth_colab.ipynb)  
@@ -101,7 +101,7 @@ The depth estimator is a second instrument. DPT predicts relative depth, and eac
 
 ###### Environment
 
-**Operating environment.** Python 3.12 with the pinned packages `torch==2.14.0`, `torchvision==0.29.0`, `diffusers==0.40.0`, `transformers==5.17.0`, `peft==0.21.0`, `accelerate==1.15.0`, `safetensors==0.8.0`, `huggingface-hub==1.32.0`, `numpy==2.5.3` and `pillow==11.3.0`. The UNet, prior, MoVQ and depth estimator run in float16 on CUDA. The LoRA parameters are kept in float32, and training uses float16 autocast. The tutorial is written for a CUDA GPU with at least 15 GB of memory, such as a 16 GB T4, and about 25 GB of free disk for the pinned weights. These requirements are estimates: no GPU run of this repository has been recorded yet. On CPU the code runs in float32 but is impractically slow.
+**Operating environment.** Python 3.12 with the pinned packages `torch==2.14.0`, `torchvision==0.29.0`, `diffusers==0.40.0`, `transformers==5.17.0`, `peft==0.21.0`, `accelerate==1.15.0`, `safetensors==0.8.0`, `huggingface-hub==1.32.0`, `numpy==2.5.3` and `pillow==11.3.0`. The UNet, prior, MoVQ and depth estimator run in float16 on CUDA. The LoRA parameters are kept in float32, and training uses float16 autocast. The tutorial notebook does not install these into its kernel: it builds a separate CPython 3.12.12 environment with a pinned `uv` from `tutorials/requirements-colab.lock.txt`, which locks those pins and all their dependencies to exact versions and SHA-256 digests for Linux x86_64 (the Linux `torch` 2.14.0 wheel is the CUDA 13.0 build), and runs each stage in its own process there. The tutorial requires a Linux x86_64 runtime with a CUDA GPU of at least 15 GB of memory, such as a 16 GB T4, and about 31 GB of free disk: 17.8 GB of pinned weights and about 12 GB for the isolated environment. The previous in-kernel-install notebook ran on a Kaggle T4 (see *Verification records*); the isolated-environment notebook ran on a Colab T4 and a Kaggle T4 on 2026-09-29 and 2026-09-30. On CPU the code runs in float32 but is impractically slow.
 
 **Data environment.** Adaptation assumes that the training photographs resemble the images the user later wants to generate, in subject, framing and photographic style. Generation assumes a hint from the same estimator and the same crop as in training. Prompts and layouts far from the adapted data revert towards the base model's behaviour. Held-out denoising loss is meaningful only when the validation photographs come from the same distribution as the training photographs.
 
@@ -172,7 +172,7 @@ Foreseeable misuse includes images that follow the exact layout of a real scene 
 4. **Adapter integrity:** `load_adapter` refuses an artifact whose `format` is not `org.valcorza.kandinsky-controlnet-depth.adapter.v1`. It also refuses a different base model or depth estimator, a tensor set outside the LoRA scope, or an `adapter.safetensors` digest that differs from its manifest.
 5. **Input integrity:** `validate_dataset`, `validate_prompts` and `validate_hint` reject malformed records, prompts and hints before any model runs.
 6. **Bounded adaptation:** `adapt` refuses more than 50 epochs or a learning rate above `1e-2`, and keeps the epoch with the lowest validation loss.
-7. **Reproducibility:** splits, noise and generated images are seeded, and prompt encoding is seeded from SHA-256 rather than Python's salted `hash()`. Runtime packages are pinned exactly in `pyproject.toml` and in the notebook.
+7. **Reproducibility:** splits, noise and generated images are seeded, and prompt encoding is seeded from SHA-256 rather than Python's salted `hash()`. Runtime packages are pinned exactly in `pyproject.toml`; the notebook installs them, with every transitive dependency, from a hash lock into an isolated environment and never into the hosted runtime's own interpreter.
 
 The pipeline has no content filter or safety checker on prompts or generated images. It adds no watermark or provenance metadata to generated images.
 
@@ -235,7 +235,18 @@ The following uses are unacceptable even where the pipeline would work:
 
 ## Verification records
 
-`docs/release-verification.md` holds the procedure and every record. Three executions are recorded, all on 2026-09-29 at commit `f4fe86a`.
+`docs/release-verification.md` holds the procedure and every record. The current notebook, which runs every stage in an isolated hash-locked environment, was run three times at commit `c86e3fe`:
+
+- **Date:** 2026-09-30
+- **Subject:** `tutorials/kandinsky_controlnet_depth_colab.ipynb` at commit `c86e3fe`, blob `10145c037440`
+- **Runtime:** Google Colab, Tesla T4 (15,360 MiB); the notebook kernel ran Python 3.13.15, and the isolated environment ran Python 3.12.12 with `torch 2.14.0+cu130`, `diffusers 0.40.0`, `transformers 5.17.0` and `peft 0.21.0`
+- **Procedure:** `Run all` from a fresh runtime with the form fields at their defaults
+- **Observed result:** 11 of 11 code cells ran in one pass without error or restart. Held-out test `denoising_mse` was 0.072207 for the frozen model and 0.071639 after adaptation. `depth_correlation` was 0.864 frozen and 0.859 adapted, against 0.256 for a mismatched hint. A reload in a fresh process reproduced the adapted model's results exactly.
+- **Caveats:** one run on one seeded split. This is sample-sanity evidence, not a benchmark.
+
+The same commit also passed a Kaggle T4 run in strict single-pass mode (a restart request fails the run), with the same results, and the BYOD journey: 12 representative photographs were carried through every stage, and a `captions.csv` without its `caption` column and a 200 × 200 image were each refused with the validator's message.
+
+Three earlier executions are also recorded, all on 2026-09-29 at commit `f4fe86a`. The conversion check does not depend on the notebook and stays valid. The two notebook runs are of the **previous** notebook revision, which installed its pins into the kernel and needed a manual restart on hosted runtimes.
 
 The conversion check:
 
@@ -246,7 +257,7 @@ The conversion check:
 - **Observed result:** all 740 UNet tensors (1,253,429,212 elements) and all 431 MoVQ tensors (67,832,495 elements) have identical key sets, shapes, dtypes and values.
 - **Caveats:** this proves the files are the same checkpoint. It says nothing about the checkpoint's quality.
 
-The clean-runtime run of the tutorial notebook:
+The clean-runtime run of the previous tutorial notebook:
 
 - **Date:** 2026-09-29
 - **Subject:** `tutorials/kandinsky_controlnet_depth_colab.ipynb` at commit `f4fe86a`, blob `671cf4c8f722`
