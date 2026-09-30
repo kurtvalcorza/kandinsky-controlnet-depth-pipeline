@@ -133,7 +133,9 @@ regenerate the notebook whenever a pin changes.
 
 ## Release status
 
-**Candidate** — the fix for the hosted-runtime restart is implemented but has not yet run on hardware. The previous notebook pip-installed its pins into the kernel, which on Google Colab and Kaggle replaced preloaded `numpy`, `protobuf` and `cuda-bindings` and stopped `Run all` with a manual-restart request (Notebook Specification 2.2 RUN1/RUN10). The notebook now follows the version 2.2 reference pattern (§25.13): nothing is installed into the kernel; a pinned `uv` builds an isolated environment from the committed hash lock (`tutorials/requirements-colab.lock.txt`) and every stage runs there in its own process. Promotion needs a clean Colab or Kaggle `Run all` of this notebook revision and the REL12 BYOD journey, recorded in `docs/release-verification.md`; the earlier Kaggle notebook runs there are of the previous in-kernel-install notebook and are not evidence for this one. The conversion check recorded there does not depend on the notebook and stays valid. See `STATUS.md` and `docs/release-verification.md`.
+**Release-grade** — the tutorial notebook runs in an isolated hash-locked environment and passed `Run all` in one pass on Google Colab and on a strict Kaggle T4 run, plus the REL12 BYOD
+journey, at `c86e3fe`; the conversion check proved the pinned safetensors bit-identical to `main`. See
+`docs/release-verification.md` and `STATUS.md`.
 
 ## Licensing
 
