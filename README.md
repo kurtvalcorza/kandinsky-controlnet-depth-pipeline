@@ -137,10 +137,11 @@ regenerate the notebook whenever a pin changes.
 
 **Candidate** — the tutorial notebook was regenerated after the 2026-10-02 notebook review (explanations, the
 leave-one-out real-photo reference and small printed outputs changed), so the hosted records belong to its
-previous revision. That revision runs in an isolated hash-locked environment and passed `Run all` in one pass on Google
+previous revision; the current revision has one recorded Colab CLI run on a fresh T4 (2026-10-04, default path, one pass, no
+restart). The previous revision runs in an isolated hash-locked environment and passed `Run all` in one pass on Google
 Colab and on a strict Kaggle T4 run, plus the REL12 BYOD journey, at `c86e3fe`; the conversion check proved the pinned
-safetensors bit-identical to `main`. A hosted `Run all` of the current notebook revision is needed before it is
-promoted again. See `docs/release-verification.md` and `STATUS.md`.
+safetensors bit-identical to `main`. A strict clean-executor run and the BYOD journey at the current revision are needed before
+it is promoted again. See `docs/release-verification.md` and `STATUS.md`.
 
 ## Licensing
 
