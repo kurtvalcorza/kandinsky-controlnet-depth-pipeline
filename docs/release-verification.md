@@ -38,7 +38,7 @@ CI runs `ruff check src tests tools`, the offline unit suite, `tools/validate_re
   staging and verification of the four snapshots, `fetch_sample_dataset`, `load_byod_dataset`, `dataset_manifest`,
   `write_dataset_csv`, `validate_dataset` with the refusal probes, the dataset-digest re-check, `compute_hints`,
   `encode_prompts`, `release_prior` and the hint and prompt caches, the frozen evaluation, generation, CLIP scoring with
-  `real_photo_baseline` and depth fidelity with `real_photo_depth_ceiling`, the flat-hint activity scored with
+  the leave-one-out `real_photo_reference` and depth fidelity with `real_photo_depth_ceiling`, the flat-hint activity scored with
   `depth_fidelity_from_maps`, `pipe.adapt` with its explicit hyperparameters, the in-memory reference values,
   `save_artifact`, the fresh-process `from_artifact` evaluation with the guaranteed checks and the depth comparison
   rows, the second fresh-process reload with the parity check, the new-prompt generation, the provenance fields
@@ -137,4 +137,4 @@ valid for the isolated-environment notebook.
 
 ## Current status
 
-**Release-grade.** At `c86e3fe` (notebook blob `10145c037440`) the notebook runs every stage in an isolated hash-locked environment and installs nothing into the kernel. Its default `Run all` path passed in one pass on Google Colab (T4) and on a clean Kaggle T4 in strict single-pass mode, and its BYOD branch passed the REL12 journey (representative photographs accepted and carried through depth hints, adaptation, evaluation, export and a fresh-process reload; two incompatible inputs refused with the validator's message). The conversion check recorded above proved the pinned safetensors bit-identical to `main`'s `.bin` weights.
+**Candidate.** The notebook was regenerated after the 2026-10-02 notebook review (findings KCD-M1 and KCD-m1..m6: explanations, the leave-one-out real-photo reference, per-hint activity files and small printed outputs), so its blob no longer matches the records above, and a hosted `Run all` of the current revision is required before it can be promoted again. The previous revision was release-grade: at `c86e3fe` (notebook blob `10145c037440`) the notebook runs every stage in an isolated hash-locked environment and installs nothing into the kernel. Its default `Run all` path passed in one pass on Google Colab (T4) and on a clean Kaggle T4 in strict single-pass mode, and its BYOD branch passed the REL12 journey (representative photographs accepted and carried through depth hints, adaptation, evaluation, export and a fresh-process reload; two incompatible inputs refused with the validator's message). The conversion check recorded above proved the pinned safetensors bit-identical to `main`'s `.bin` weights.

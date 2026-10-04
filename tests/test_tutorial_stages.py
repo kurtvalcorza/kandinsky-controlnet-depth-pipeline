@@ -282,7 +282,7 @@ def test_cpu_preflight_runs_every_stage_through_files(preflight, capsys) -> None
     }
     assert set(report["comparison"]["depth_correlation"]) == {"frozen", "adapted", "mismatched_baseline"}
     assert report["adapted"]["loaded_from"] == "exported artifact, fresh process"
-    assert report["activity"]["hint_given"] == "flat"
+    assert report["activity_at_evaluation"]["hint_given"] == "flat"  # KCD-m5: labelled as the activity seen by evaluate
     assert set(report["real_photo_depth_check"]) >= {"depth_correlation", "depth_aligned_mae"}
     # The stub generator follows its hint, so the depth measures separate the own hint from the mismatched baseline.
     frozen_depth = report["frozen"]["depth_fidelity"]

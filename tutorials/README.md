@@ -18,7 +18,7 @@ regenerate
 
 | Notebook | Profile | Mode | Carrier | Capability | Default runtime | Sample | BYOD | Run-all | Release status |
 |---|---|---|---|---|---|---|---|---|---|
-| `kandinsky_controlnet_depth_colab.ipynb` | `E2E` | `GUIDED` | standalone (generated) | Kandinsky 2.2 ControlNet-depth: photograph → DPT depth hint → prompt + hint → 512 × 512 image; four digest-verified safetensors snapshots (decoder from an open upstream conversion pull request, prior, depth estimator, CLIP scorer); 60 digest-pinned CC0 iNaturalist bird photographs with refusal probes; held-out denoising loss, CLIP scores against the real-photo ceiling and depth fidelity against a mismatched-hint baseline; a change-one-thing activity on the hint; bounded LoRA fine-tuning; a paired comparison on identical held-out inputs; safetensors adapter export with verified reload parity | Linux x86_64 GPU (T4 or better, ≥ 15 GB); isolated hash-locked environment; float16; about 31 GB of disk (17.8 GB of snapshots, about 12 GB for the environment) | 60 photographs (about 6 MB) fetched at run time, no credential | zip of images + `captions.csv`, gated off by default, `BYOD_PATH` bypasses the upload dialog | not yet recorded for this revision (the previous in-kernel-install revision took 831.5 s on a Kaggle T4) | Release-grade — `Run all` PASS in one pass on Google Colab (T4) and a strict Kaggle T4 run, plus the REL12 BYOD journey, at `c86e3fe`; conversion bit-identical (recorded in `../docs/release-verification.md`) |
+| `kandinsky_controlnet_depth_colab.ipynb` | `E2E` | `GUIDED` | standalone (generated) | Kandinsky 2.2 ControlNet-depth: photograph → DPT depth hint → prompt + hint → 512 × 512 image; four digest-verified safetensors snapshots (decoder from an open upstream conversion pull request, prior, depth estimator, CLIP scorer); 60 digest-pinned CC0 iNaturalist bird photographs with refusal probes; held-out denoising loss, CLIP scores beside a leave-one-out real-photo reference and depth fidelity against a mismatched-hint baseline; a change-one-thing activity on the hint; bounded LoRA fine-tuning; a paired comparison on identical held-out inputs; safetensors adapter export with verified reload parity | Linux x86_64 GPU (T4 or better, ≥ 15 GB); isolated hash-locked environment; float16; about 31 GB of disk (17.8 GB of snapshots, about 12 GB for the environment) | 60 photographs (about 6 MB) fetched at run time, no credential | zip of images + `captions.csv`, gated off by default, `BYOD_PATH` bypasses the upload dialog | 1,156.2 s on a strict Kaggle T4 with an empty model cache (2026-09-29, previous revision `c86e3fe`, same stages) | Candidate — regenerated after the 2026-10-02 review; the previous revision passed `Run all` in one pass on Google Colab (T4) and a strict Kaggle T4 run, plus the REL12 BYOD journey, at `c86e3fe`; conversion bit-identical; this revision needs a hosted `Run all` (see `../docs/release-verification.md`) |
 
 ## What this notebook teaches
 
@@ -57,7 +57,7 @@ its hint — against a mismatched-hint baseline. The only assertions are the one
 - **Stages (§4.1), one process each:** `weights` (stage and verify the four snapshots) → `prepare` (sample or BYOD,
   validation with refusal probes, the seeded split, recorded so every later stage rebuilds and re-checks the same
   records) → `encode` (depth hints and prompt embeddings written to two safetensors caches; the prior released) →
-  `frozen` (held-out loss, CLIP and depth fidelity of the frozen model, the real-photo ceiling and the mismatched-hint
+  `frozen` (held-out loss, CLIP and depth fidelity of the frozen model, the leave-one-out real-photo reference and the mismatched-hint
   baseline) → `activity` (the change-one-thing hint activity) → `adapt` (bounded LoRA fine-tuning, the trained
   in-memory model's test loss and a fixed-seed image recorded, `save_artifact`) → `evaluate` (`from_artifact` in a
   fresh process, the paired comparison) → `reload` (`from_artifact` in a second fresh process with parity against the
@@ -75,7 +75,8 @@ its hint — against a mismatched-hint baseline. The only assertions are the one
   restart, and a Conclude with evidence scaffold. Learner prose says "notebook" throughout.
 - **Adaptation and evaluation (FT1–FT8, EVAL1–EVAL15):** LoRA on the UNet attention projections only, explicit
   hyperparameters, validation-selected epoch, held-out test used only for the final comparison, the frozen model as
-  baseline, the real-photo ceiling and the mismatched-hint baseline as references, all metrics labelled sample-sanity.
+  baseline, the leave-one-out real-photo reference (not a ceiling) and the mismatched-hint baseline as references, all
+  metrics labelled sample-sanity.
 - **BYOD (DAT10–DAT19, EXE1–EXE2):** `USE_BYOD` defaults to `False`; `BYOD_PATH` reads a zip without an upload dialog;
   the kernel passes the zip's path to the `prepare` stage, and user photographs get hints from the same estimator and
   flow through validation, adaptation, evaluation, export and reload. An invalid zip stops Section 4 with a

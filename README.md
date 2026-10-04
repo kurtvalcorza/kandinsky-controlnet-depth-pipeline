@@ -6,7 +6,7 @@ hint becomes a 512 × 512 image whose content follows the words and whose layout
 pinned to an immutable Hugging Face commit together with the shared `kandinsky-community/kandinsky-2-2-prior`, the
 depth estimator `Intel/dpt-large` and a CLIP scorer for evaluation. The repository exposes depth-conditioned
 generation, a held-out denoising-loss, CLIP and depth-fidelity evaluation, a captioned-image contract with explicit
-ceilings, a bounded LoRA fine-tuning contract with a portable safetensors adapter, a `MODEL_CARD.md` at DIMER Model
+limits, a bounded LoRA fine-tuning contract with a portable safetensors adapter, a `MODEL_CARD.md` at DIMER Model
 Card Specification 1.2, and a standalone, guided `E2E` tutorial at DIMER Notebook Specification 2.2.
 
 ## Upstream alignment
@@ -35,7 +35,9 @@ Section 7 changes only the hint (flat, mismatched or original) to show the split
 **Generation has no ground truth, and the numbers say what they are.** `evaluate()` reports the held-out *denoising
 loss* with each record's own hint, at fixed timesteps with seeded noise, so frozen and adapted models see identical
 inputs. `metrics.score_generations()` reports CLIP prompt similarity, label accuracy and similarity to real
-photographs, and `real_photo_baseline()` the same on the real photographs — the ceiling. `metrics.score_depth_fidelity()`
+photographs, and `real_photo_reference()` the same on the real photographs, leave-one-out (each photograph compared
+with the other photographs of its caption, itself excluded) — a reference line, not a ceiling: generated images can
+score above it (`real_photo_baseline()` is kept as an alias). `metrics.score_depth_fidelity()`
 reports the Pearson correlation and the scale/offset-aligned error between each generated image's estimated depth and
 its hint, next to a mismatched-hint baseline. None of these is a human judgement of image quality.
 
@@ -133,9 +135,12 @@ regenerate the notebook whenever a pin changes.
 
 ## Release status
 
-**Release-grade** — the tutorial notebook runs in an isolated hash-locked environment and passed `Run all` in one pass on Google Colab and on a strict Kaggle T4 run, plus the REL12 BYOD
-journey, at `c86e3fe`; the conversion check proved the pinned safetensors bit-identical to `main`. See
-`docs/release-verification.md` and `STATUS.md`.
+**Candidate** — the tutorial notebook was regenerated after the 2026-10-02 notebook review (explanations, the
+leave-one-out real-photo reference and small printed outputs changed), so the hosted records belong to its
+previous revision. That revision runs in an isolated hash-locked environment and passed `Run all` in one pass on Google
+Colab and on a strict Kaggle T4 run, plus the REL12 BYOD journey, at `c86e3fe`; the conversion check proved the pinned
+safetensors bit-identical to `main`. A hosted `Run all` of the current notebook revision is needed before it is
+promoted again. See `docs/release-verification.md` and `STATUS.md`.
 
 ## Licensing
 
