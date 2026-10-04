@@ -100,6 +100,12 @@ def grid(images: list[Any], path: Path, columns: int = 6) -> Path:
     return path
 
 
+def timestep_shares(by_timestep: dict[str, float]) -> dict[str, float]:
+    """Each timestep's share of the mean denoising loss (the mean is the plain average over the timesteps)."""
+    total = sum(by_timestep.values())
+    return {t: round(v / total, 4) if total else 0.0 for t, v in by_timestep.items()}
+
+
 def depth_image(depth: Any) -> Any:
     from PIL import Image
 
@@ -389,11 +395,11 @@ def stage_encode(run: Run) -> None:
 
 
 def stage_frozen(run: Run) -> None:
-    """Section 6: the frozen model's held-out denoising loss, its CLIP- and depth-scored generations, the real-photo
-    ceiling and the mismatched-hint baseline."""
+    """Section 6: the frozen model's held-out denoising loss, its CLIP- and depth-scored generations, the leave-one-out
+    real-photo reference (a reference line, not a ceiling) and the mismatched-hint baseline."""
     from kandinsky_controlnet_depth_pipeline import (
-        real_photo_baseline,
         real_photo_depth_ceiling,
+        real_photo_reference,
         score_depth_fidelity,
         score_generations,
     )
@@ -408,6 +414,7 @@ def stage_frozen(run: Run) -> None:
     frozen_val = pipe.evaluate(val_records, seed=EVAL_SEED)
     frozen_test = pipe.evaluate(test_records, seed=EVAL_SEED)
     print({"frozen_denoising_mse": {"validation": frozen_val["denoising_mse"], "test": frozen_test["denoising_mse"]}, "by_timestep_test": frozen_test["by_timestep"], "seconds": round(time.perf_counter() - t0, 1)})
+    print({"share_of_test_mean_by_timestep": timestep_shares(frozen_test["by_timestep"]), "note": "epsilon-prediction: the loss falls as the timestep (noise level) rises, so the smallest timestep dominates the mean"})
 
     generation_prompts = [r["caption"] for r in test_records]
     generation_hints = [pipe.depth_hint(r) for r in test_records]
@@ -415,9 +422,9 @@ def stage_frozen(run: Run) -> None:
     print({"generated": len(frozen_generation["images"]), "steps": frozen_generation["steps"], "guidance_scale": frozen_generation["guidance_scale"], "seconds": frozen_generation["seconds"], "adapted": frozen_generation["model"]["adapted"]})
     frozen_scores = score_generations(scorer, frozen_generation["images"], references=test_records)
     frozen_depth = score_depth_fidelity(pipe, frozen_generation["images"])
-    real_ceiling = real_photo_baseline(scorer, test_records)
+    real_reference = real_photo_reference(scorer, test_records)
     depth_floor = real_photo_depth_ceiling(pipe, test_records)
-    print({"frozen_clip": {k: frozen_scores[k] for k in CLIP_KEYS}, "real_photo_ceiling": {k: real_ceiling[k] for k in CLIP_KEYS}})
+    print({"frozen_clip": {k: frozen_scores[k] for k in CLIP_KEYS}, "real_photo_reference": {k: real_reference[k] for k in CLIP_KEYS}, "reference_kind": real_reference["reference_kind"]})
     print({"frozen_depth_fidelity": {k: frozen_depth[k] for k in DEPTH_KEYS}, "real_photo_depth_check": {k: depth_floor[k] for k in DEPTH_KEYS[:2]}})
     tiles = []
     for entry in frozen_generation["images"][:6]:
@@ -437,7 +444,7 @@ def stage_frozen(run: Run) -> None:
         "generation_result": without_images(frozen_generation),
         "clip": frozen_scores,
         "depth_fidelity": frozen_depth,
-        "real_photo_ceiling": real_ceiling,
+        "real_photo_reference": real_reference,
         "real_photo_depth_check": depth_floor,
         "images": image_names,
     }
@@ -479,6 +486,8 @@ def stage_activity(run: Run) -> None:
         "section_6_mismatched_baseline": frozen["depth_fidelity"]["mismatched_depth_correlation"],
         "clip_prompt_similarity": activity_clip["clip_prompt_similarity"],
     }
+    activity_summary["written_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    activity_summary["file"] = f"outputs/activity_{hint_choice}.json"
     print(activity_summary)
     before_images = load_frozen_images(run, frozen)
     tiles = []
@@ -486,7 +495,10 @@ def stage_activity(run: Run) -> None:
         tiles += [before, depth_image(hint), after["image"]]
     print({"grid": str(grid(tiles, run.out / f"{STEM}_activity_grid.jpg", columns=3))})
     run.write_state("activity.json", activity_summary)
-    run.write_output("activity.json", {**activity_summary, "depth_fidelity": activity_depth, "clip": activity_clip})
+    detail = {**activity_summary, "depth_fidelity": activity_depth, "clip": activity_clip}
+    # One file per hint, so a rerun with another hint keeps the earlier result; activity.json is always the latest run.
+    run.write_output(f"activity_{hint_choice}.json", detail)
+    run.write_output("activity.json", {**detail, "latest_run": True})
 
 
 def stage_adapt(run: Run) -> None:
@@ -564,14 +576,14 @@ def stage_evaluate(run: Run) -> None:
     adapted_scores = score_generations(scorer, adapted_generation["images"], references=test_records)
     adapted_depth = score_depth_fidelity(pipe, adapted_generation["images"])
     frozen_val, frozen_test, frozen_scores, frozen_depth = frozen["validation"], frozen["test"], frozen["clip"], frozen["depth_fidelity"]
-    real_ceiling = frozen["real_photo_ceiling"]
+    real_reference = frozen["real_photo_reference"]
     comparison = {
         "denoising_mse_validation": {"frozen": frozen_val["denoising_mse"], "adapted": adapted_val["denoising_mse"]},
         "denoising_mse_test": {"frozen": frozen_test["denoising_mse"], "adapted": adapted_test["denoising_mse"]},
         "denoising_mse_test_by_timestep": {t: {"frozen": frozen_test["by_timestep"][t], "adapted": adapted_test["by_timestep"][t]} for t in adapted_test["by_timestep"]},
-        "clip_prompt_similarity": {"frozen": frozen_scores["clip_prompt_similarity"], "adapted": adapted_scores["clip_prompt_similarity"], "real_photos": real_ceiling["clip_prompt_similarity"]},
-        "label_accuracy": {"frozen": frozen_scores["label_accuracy"], "adapted": adapted_scores["label_accuracy"], "real_photos": real_ceiling["label_accuracy"]},
-        "reference_similarity": {"frozen": frozen_scores["reference_similarity"], "adapted": adapted_scores["reference_similarity"], "real_photos": real_ceiling["reference_similarity"]},
+        "clip_prompt_similarity": {"frozen": frozen_scores["clip_prompt_similarity"], "adapted": adapted_scores["clip_prompt_similarity"], "real_photos": real_reference["clip_prompt_similarity"]},
+        "label_accuracy": {"frozen": frozen_scores["label_accuracy"], "adapted": adapted_scores["label_accuracy"], "real_photos": real_reference["label_accuracy"]},
+        "reference_similarity": {"frozen": frozen_scores["reference_similarity"], "adapted": adapted_scores["reference_similarity"], "real_photos": real_reference["reference_similarity"]},
         "depth_correlation": {"frozen": frozen_depth["depth_correlation"], "adapted": adapted_depth["depth_correlation"], "mismatched_baseline": frozen_depth["mismatched_depth_correlation"]},
         "depth_aligned_mae": {"frozen": frozen_depth["depth_aligned_mae"], "adapted": adapted_depth["depth_aligned_mae"], "mismatched_baseline": frozen_depth["mismatched_depth_aligned_mae"]},
     }
@@ -591,9 +603,13 @@ def stage_evaluate(run: Run) -> None:
         "generation": {k: settings[k] for k in ("steps", "guidance_scale", "seed", "images")},
         "frozen": {"validation": frozen_val, "test": frozen_test, "clip": frozen_scores, "depth_fidelity": frozen_depth},
         "adapted": {"validation": adapted_val, "test": adapted_test, "clip": adapted_scores, "depth_fidelity": adapted_depth, "loaded_from": "exported artifact, fresh process"},
-        "real_photo_ceiling": real_ceiling,
+        "real_photo_reference": real_reference,
         "real_photo_depth_check": frozen["real_photo_depth_check"],
-        "activity": activity_summary,
+        # The activity as it stood when this report was written; a later Section 7 rerun is not reflected here.
+        "activity_at_evaluation": {
+            **activity_summary,
+            "note": "the Section 7 result present when 'evaluate' ran; a later rerun of Section 7 writes outputs/activity_<hint>.json and outputs/activity.json, not this report",
+        },
         "comparison": comparison,
         "adaptation": adapted_state["adaptation"],
         "history": adapted_state["history"],
@@ -660,7 +676,8 @@ def stage_reload(run: Run) -> None:
         raise AssertionError(f"reload parity failed: {parity}")
 
     scorer = load_scorer(run, reloaded.device)
-    new_hints = [reloaded.depth_hint(test_records[0]), reloaded.depth_hint(test_records[1])]
+    # The first two test layouts (the same layout twice when the test set holds a single photograph).
+    new_hints = [reloaded.depth_hint(test_records[0]), reloaded.depth_hint(test_records[1 % len(test_records)])]
     new_generation = reloaded.generate([new_prompt, new_prompt], new_hints, seed=NEW_PROMPT_SEED, steps=settings["steps"], guidance_scale=settings["guidance_scale"])
     new_scores = score_generations(scorer, new_generation["images"])
     new_depth = score_depth_fidelity(reloaded, new_generation["images"])
