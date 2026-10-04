@@ -3,11 +3,14 @@ depth-conditioned generation, held-out denoising-loss, CLIP and depth-fidelity e
 fine-tuning with a portable adapter."""
 
 from .metrics import (
+    REAL_PHOTO_REFERENCE_KIND,
+    REAL_PHOTO_REFERENCE_READING,
     ClipScorer,
     depth_agreement,
     depth_fidelity_from_maps,
     real_photo_baseline,
     real_photo_depth_ceiling,
+    real_photo_reference,
     score_depth_fidelity,
     score_generations,
 )
@@ -140,6 +143,8 @@ __all__ = [
     "PRIOR_REVISION",
     "PRIOR_TENSORS",
     "PRIOR_WEIGHTS_DIR",
+    "REAL_PHOTO_REFERENCE_KIND",
+    "REAL_PHOTO_REFERENCE_READING",
     "RESOLUTION",
     "SAMPLE_LABEL_SOURCE",
     "SAMPLE_RECORDS",
@@ -177,6 +182,7 @@ __all__ = [
     "read_corpus",
     "real_photo_baseline",
     "real_photo_depth_ceiling",
+    "real_photo_reference",
     "sample_prompts",
     "score_depth_fidelity",
     "score_generations",

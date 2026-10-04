@@ -148,13 +148,59 @@ def score_generations(
     return report
 
 
-def real_photo_baseline(scorer: ClipScorer, records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    """The same three CLIP measures on real photographs (image = the record's photo, prompt = its caption,
-    references = the records): the ceiling a generator could reach on these metrics."""
+REAL_PHOTO_REFERENCE_KIND = "leave-one-out real-photo reference"
+REAL_PHOTO_REFERENCE_READING = {
+    "clip_prompt_similarity": (
+        "not an upper bound: a generator conditioned on the prompt can match it more closely than a photograph does"
+    ),
+    "label_accuracy": "a reference: real photographs of these species are what the captions describe",
+    "reference_similarity": (
+        "not an upper bound: each real photo is compared with the other held-out photos of its caption (itself "
+        "excluded), the generations with all of them, so the two are not on identical terms"
+    ),
+}
+
+
+def real_photo_reference(scorer: ClipScorer, records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """The same three CLIP measures on the real photographs of a split, as a LEAVE-ONE-OUT reference line, not a ceiling.
+
+    Each photo is scored as if it were a generation of its own caption. Its `reference_similarity` is its cosine with
+    the normalised mean embedding of the OTHER records of the same caption: the photo itself is excluded, so with two
+    photos of a caption each one's value is cos(a, b) -- not sqrt((1 + cos(a, b)) / 2), which including the photo in
+    its own reference would give. A photo whose caption has no other record gets no reference similarity and is
+    counted in `n_without_reference`; when no photo has one, the report's `reference_similarity` is None. Prompt
+    similarity and label accuracy involve no reference set and are computed exactly as for generated images. Generated
+    images can score above this line on every measure (see `REAL_PHOTO_REFERENCE_READING`)."""
     generated = [{"prompt": r["caption"], "image": r["image"], "seed": None} for r in records]
-    report = score_generations(scorer, generated, references=records)
-    report["note"] = "real held-out photographs scored as if generated (references include each photo itself)"
+    report = score_generations(scorer, generated)
+    images = scorer.image_embeddings([r["image"] for r in records])
+    captions = [str(r["caption"]) for r in records]
+    values: list[float] = []
+    missing = 0
+    for i, entry in enumerate(report["per_image"]):
+        others = [j for j, caption in enumerate(captions) if caption == captions[i] and j != i]
+        if not others:
+            missing += 1
+            continue
+        mean = images[others].mean(dim=0)
+        value = float(images[i] @ (mean / mean.norm())) * 100
+        entry["reference_similarity"] = round(value, 3)
+        entry["reference_excludes_self"] = True
+        values.append(value)
+    report["reference_similarity"] = round(sum(values) / len(values), 3) if values else None
+    report["n_references"] = len(records)
+    report["n_without_reference"] = missing
+    report["reference_kind"] = REAL_PHOTO_REFERENCE_KIND
+    report["reading"] = dict(REAL_PHOTO_REFERENCE_READING)
+    report["note"] = (
+        "real held-out photographs scored as if generated; each photo's reference similarity excludes the photo itself "
+        "(leave-one-out). A reference line, not a ceiling: generated images can score above it"
+    )
     return report
+
+
+# Earlier name (it included each photo in its own reference); kept so existing callers get the corrected measure.
+real_photo_baseline = real_photo_reference
 
 
 # --------------------------------------------------------------------------------------------------

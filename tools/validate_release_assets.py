@@ -133,8 +133,17 @@ RUNNER_MARKERS = (
     "frozen_generation = pipe.generate(generation_prompts, generation_hints, seed=GEN_SEED, steps=opts.steps, guidance_scale=opts.guidance)",
     'frozen_scores = score_generations(scorer, frozen_generation["images"], references=test_records)',
     'frozen_depth = score_depth_fidelity(pipe, frozen_generation["images"])',
-    "real_ceiling = real_photo_baseline(scorer, test_records)",
+    # KCD-m1: the real photographs are a leave-one-out reference line, not a ceiling
+    "real_reference = real_photo_reference(scorer, test_records)",
+    '"real_photo_reference": real_reference,',
     "depth_floor = real_photo_depth_ceiling(pipe, test_records)",
+    # KCD-M1: each timestep's share of the mean is printed beside the per-timestep loss
+    '"share_of_test_mean_by_timestep": timestep_shares(frozen_test["by_timestep"])',
+    # KCD-m5: one activity file per hint; the evaluation report labels the activity it saw
+    'run.write_output(f"activity_{hint_choice}.json", detail)',
+    '"activity_at_evaluation": {',
+    # KCD-m6: a one-photograph BYOD test set reaches the end of Section 10
+    "reloaded.depth_hint(test_records[1 % len(test_records)])",
     "changed_hints = [flat_hint() for _ in activity_records]",
     'activity_depth = depth_fidelity_from_maps(pipe.estimate_depth([g["image"] for g in activity_generation["images"]]), own_hints)',
     "adapt_result = pipe.adapt(",
@@ -175,7 +184,15 @@ MARKDOWN_MARKERS = (
     "prior pipeline can be released",
     "Generation has no ground truth",
     "denoising loss",
-    "real-photo ceiling",
+    "reference line, not a ceiling",
+    "leave-one-out",
+    "**Pretraining overlap.**",
+    "**The split assumes independent photographs.**",
+    "stratified within each caption",
+    "at least **6 distinct images**",
+    "`split leaves N training records`",
+    "the per-timestep loss **falling** as the noise level rises",
+    "`activity_at_evaluation`",
     "mismatched-hint baseline",
     "depth fidelity",
     "not a human judgement",
@@ -185,6 +202,18 @@ MARKDOWN_MARKERS = (
     "CC0",
     "Nothing is installed into the notebook kernel",
     "--require-hashes",
+)
+# Learner-facing text the review fixes removed; it must not come back (KCD-M1 the loss direction, KCD-m1 the real-photo
+# "ceiling" and its sample answer, KCD-m2 the split wording, KCD-m4 the unrecorded run time, KCD-m6 the wrong BYOD minimum).
+STALE_MARKDOWN = (
+    "per-timestep loss rising",
+    "highest at large timesteps",
+    "often it cannot",
+    "real-photo ceiling",
+    "Hold out by caption",
+    "split by caption",
+    "has not yet been recorded",
+    "at least four images",
 )
 # Direct model-library use that must stay inside the carried files (G2): the kernel imports no model library at all.
 FORBIDDEN_IN_KERNEL = (
@@ -667,6 +696,12 @@ def _validate_notebook_content(path: Path, notebook: dict, code_cells: list[tupl
     _validate_gates(path, code_cells)
     missing_md = [marker for marker in COMMON_MARKDOWN_MARKERS + MARKDOWN_MARKERS if marker not in markdown]
     _check(not missing_md, f"{path.name}: missing learner-facing markers: {missing_md}")
+    stale = [marker for marker in STALE_MARKDOWN if marker in markdown]
+    _check(not stale, f"{path.name}: learner prose the review fixes removed is back: {stale}")
+    # KCD-m1: "ceiling" is used only to say the real photographs are NOT one (the identifier real_photo_depth_ceiling,
+    # joined by an underscore, is not a word match).
+    loose = [m.start() for m in re.finditer(r"\bceiling", markdown, re.I) if not markdown[: m.start()].endswith("not a ")]
+    _check(not loose, f"{path.name}: markdown calls something a ceiling ({len(loose)} place(s)); the real photographs are a reference line, not a ceiling (KCD-m1)")
     _check("restart" not in markdown.lower().replace("no runtime restart", "").replace("no restart", ""), f"{path.name}: learner prose must not instruct a runtime restart (RUN10)")
     _check(f"**Profile:** `{EXPECTED_PROFILE}`" in markdown, f"{path.name}: markdown must state the profile")
     _check(f"https://huggingface.co/{model_id}" in markdown, f"{path.name}: references must link {model_id}")

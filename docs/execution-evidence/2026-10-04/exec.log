@@ -1,0 +1,427 @@
+[colab] Parsing notebook '/home/kurt/colab-runs/kandinsky-controlnet-depth-pipeline-b9d2829-f75f39/kandinsky_controlnet_depth_colab_b9d2829_colab-cli-t4.ipynb'...
+[colab] Executing cell 1/11 - Infrastructure: check the runtime, GPU and disk; create a fresh run directory...
+{'gpu': 'Tesla T4, 15360 MiB', 'kernel_python': '3.13.15', 'run_directory': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0', 'weights': '/content/weights', 'environment': '/tmp/kandinsky_controlnet_depth_env_5a1517e18af0', 'free_gib': {'weights': 193.2, 'environment': 193.2}}
+[colab] Executing cell 2/11 - Infrastructure: write and verify the carried package, stage runner, lock and manifests...
+{'carried_files': 12, 'verified': True, 'repository': 'kurtvalcorza/kandinsky-controlnet-depth-pipeline', 'revision': 'bbcf3379f563cac179911fd45194c6dd7b8d58da', 'generator': 'build_notebook.py/3.0'}
+[colab] Executing cell 3/11 - Infrastructure: install the locked runtime into an isolated environment and define the stage runner...
+{'notebook_source': 'bbcf3379f563cac179911fd45194c6dd7b8d58da', 'python': '3.12.12', 'torch': '2.14.0+cu130', 'diffusers': '0.40.0', 'transformers': '5.17.0', 'peft': '0.21.0', 'cuda': True, 'locked_packages': 68, 'environment': '/tmp/kandinsky_controlnet_depth_env_5a1517e18af0/venv', 'setup_seconds': 86}
+[colab] Executing cell 4/11 - Infrastructure: stage and digest-verify the four pinned snapshots...
+Running stage 'weights' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/weights.log
+{'model_id': 'kandinsky-community/kandinsky-2-2-controlnet-depth', 'revision': '08632524a2b7e3bed39a7901d92cdd07e37544d0', 'license': 'apache-2.0', 'files': 7, 'total_bytes': 5285192144}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+{'weights_dir': '/content/weights/kandinsky-2-2-controlnet-depth', 'fetched': ['README.md', 'model_index.json', 'movq/config.json', 'movq/diffusion_pytorch_model.safetensors', 'scheduler/scheduler_config.json', 'unet/config.json', 'unet/diffusion_pytorch_model.safetensors']}
+{'verified_files': 7, 'revision': '08632524a2b7e3bed39a7901d92cdd07e37544d0'}
+{'model_id': 'kandinsky-community/kandinsky-2-2-prior', 'revision': '9fc51ad5732afc5d031724219d22e6c42179c5a8', 'license': 'apache-2.0', 'files': 14, 'total_bytes': 10574964619}
+{'weights_dir': '/content/weights/kandinsky-2-2-prior', 'fetched': ['README.md', 'model_index.json', 'text_encoder/config.json', 'text_encoder/model.safetensors', 'image_processor/preprocessor_config.json', 'tokenizer/merges.txt', 'tokenizer/special_tokens_map.json', 'tokenizer/tokenizer_config.json', 'tokenizer/vocab.json', 'image_encoder/config.json', 'image_encoder/model.safetensors', 'scheduler/scheduler_config.json', 'prior/config.json', 'prior/diffusion_pytorch_model.safetensors']}
+{'verified_files': 14, 'revision': '9fc51ad5732afc5d031724219d22e6c42179c5a8'}
+{'model_id': 'Intel/dpt-large', 'revision': 'bc15f29aa3a80d532f2ed650b5e16ac48d8958f9', 'license': 'apache-2.0', 'files': 4, 'total_bytes': 1367465032}
+{'weights_dir': '/content/weights/dpt-large', 'fetched': ['README.md', 'config.json', 'preprocessor_config.json', 'model.safetensors']}
+{'verified_files': 4, 'revision': 'bc15f29aa3a80d532f2ed650b5e16ac48d8958f9'}
+{'model_id': 'laion/CLIP-ViT-B-32-laion2B-s34B-b79K', 'revision': '1a25a446712ba5ee05982a381eed697ef9b435cf', 'license': 'mit', 'files': 9, 'total_bytes': 608782299}
+{'weights_dir': '/content/weights/clip-vit-b-32-laion2b', 'fetched': ['README.md', 'config.json', 'merges.txt', 'model.safetensors', 'preprocessor_config.json', 'special_tokens_map.json', 'tokenizer.json', 'tokenizer_config.json', 'vocab.json']}
+{'verified_files': 9, 'revision': '1a25a446712ba5ee05982a381eed697ef9b435cf'}
+{'stage': 'weights', 'status': 'ok', 'seconds': 266.0}
+[colab] Executing cell 5/11 - kandinsky_controlnet_depth-15...
+Running stage 'prepare' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/prepare.log
+{'data_source': "iNaturalist CC0 bird photographs (six species, 10 each); iNaturalist open-data bucket, research-grade CC0 photos selected 2026-09-19 (fleet DINOv2/ViT corpus subset); CC0 1.0 (each photo's own license_code on iNaturalist; observers credited in the records)", 'splits': {'train': 36, 'validation': 12, 'test': 12}, 'captions': 6, 'disjoint': {'train': 36, 'validation': 12, 'test': 12}}
+{'shorter_side': {'min': 298, 'max': 500}, 'centre_cropped': 31, 'digest': '9ca31704e68277d8...'}
+{'first_test_record': {'id': 'test-000', 'size': (500, 383), 'resized_to': (668, 512), 'centre_crop': (512, 512), 'caption_chars': 80}, 'caption': 'a photo of a Song Sparrow (Melospiza melodia), a wild bird photographed outdoors'}
+{'prompts': ['a photo of a Chipping Sparrow (Spizella passerina), a wild bird photographed outdoors', 'a photo of a Song Sparrow (Melospiza melodia), a wild bird photographed outdoors', 'a photo of a American Goldfinch (Spinus tristis), a wild bird photographed outdoors', 'a photo of a Dark-eyed Junco (Junco hyemalis), a wild bird photographed outdoors', 'a photo of a White-throated Sparrow (Zonotrichia albicollis), a wild bird photographed outdoors', 'a photo of a House Finch (Haemorhous mexicanus), a wild bird photographed outdoors']}
+{'sample_csv': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_sample_captions.csv'}
+{'validation': 'record shape, image decodability and side limits, caption length, duplicate ids and hint shape/dtype only. Nothing checks that a caption describes its image, that the images are photographs, that a depth map is plausible, or that the prompt is one the model can render -- any RGB image with any string is accepted'}
+{'probe': 'missing caption', 'rejected': "records[0] is missing 'caption'"}
+{'probe': 'image too small', 'rejected': 'records[0]: image sides must be within 256..4096 px, got (200, 200)'}
+{'probe': 'duplicate id', 'rejected': "duplicate id 'train-000'"}
+{'stage': 'prepare', 'status': 'ok', 'seconds': 68.8}
+[colab] Executing cell 6/11 - kandinsky_controlnet_depth-17...
+Running stage 'encode' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/encode.log
+W1004 13:13:02.802000 3731 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1004 13:13:02.859000 3731 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unable to import `torchao` Tensor objects. This may affect loading checkpoints serialized with `torchao`
+Loading weights:   0%|          | 0/458 [00:00<?, ?it/s]
+Loading weights:   3%|▎         | 14/458 [00:00<00:04, 92.87it/s]
+Loading weights:   7%|▋         | 30/458 [00:00<00:04, 95.59it/s]
+Loading weights:  10%|█         | 46/458 [00:00<00:04, 86.77it/s]
+Loading weights:  14%|█▎        | 62/458 [00:00<00:04, 82.86it/s]
+Loading weights:  17%|█▋        | 78/458 [00:00<00:04, 81.26it/s]
+Loading weights:  21%|██        | 94/458 [00:01<00:04, 81.03it/s]
+Loading weights:  24%|██▍       | 110/458 [00:01<00:04, 80.46it/s]
+Loading weights:  28%|██▊       | 126/458 [00:01<00:04, 80.34it/s]
+Loading weights:  31%|███       | 142/458 [00:01<00:03, 80.14it/s]
+Loading weights:  34%|███▍      | 158/458 [00:01<00:03, 80.25it/s]
+Loading weights:  38%|███▊      | 174/458 [00:02<00:03, 80.03it/s]
+Loading weights:  41%|████▏     | 190/458 [00:02<00:03, 79.37it/s]
+Loading weights:  45%|████▍     | 206/458 [00:02<00:03, 79.90it/s]
+Loading weights:  48%|████▊     | 222/458 [00:02<00:02, 79.85it/s]
+Loading weights:  52%|█████▏    | 238/458 [00:02<00:02, 79.92it/s]
+Loading weights:  55%|█████▌    | 254/458 [00:03<00:02, 80.15it/s]
+Loading weights:  59%|█████▉    | 270/458 [00:03<00:02, 79.78it/s]
+Loading weights:  62%|██████▏   | 286/458 [00:03<00:02, 79.75it/s]
+Loading weights:  66%|██████▌   | 302/458 [00:03<00:01, 79.89it/s]
+Loading weights:  69%|██████▉   | 318/458 [00:03<00:01, 80.37it/s]
+Loading weights:  73%|███████▎  | 334/458 [00:04<00:01, 79.88it/s]
+Loading weights:  76%|███████▋  | 350/458 [00:04<00:01, 79.87it/s]
+Loading weights:  80%|███████▉  | 366/458 [00:04<00:01, 79.70it/s]
+Loading weights:  83%|████████▎ | 382/458 [00:04<00:00, 80.58it/s]
+Loading weights:  87%|████████▋ | 399/458 [00:04<00:00, 96.04it/s]
+Loading weights:  92%|█████████▏| 422/458 [00:04<00:00, 122.26it/s]
+Loading weights:  96%|█████████▌| 440/458 [00:05<00:00, 134.49it/s]
+Loading weights: 100%|█████████▉| 456/458 [00:05<00:00, 92.96it/s]
+Loading weights: 100%|██████████| 458/458 [00:05<00:00, 85.61it/s]
+[transformers] [1mDPTForDepthEstimation LOAD REPORT[0m from: /content/weights/dpt-large
+Key                                                            | Status  |
+---------------------------------------------------------------+---------+-
+neck.fusion_stage.layers.0.residual_layer1.convolution1.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.bias   | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution1.bias   | MISSING |
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+{'computed': 60, 'cached': 60, 'estimator': {'id': 'Intel/dpt-large', 'revision': 'bc15f29aa3a80d532f2ed650b5e16ac48d8958f9'}, 'seconds': 10.17, 'gpu_memory_gb': 3.39}
+{'hint_shape': (512, 512), 'dtype': 'uint8', 'min': 0, 'max': 255, 'mean': 126.0}
+{'hint_grid': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_hints.jpg'}
+Loading pipeline components...:   0%|          | 0/6 [00:00<?, ?it/s]
+Loading weights:   0%|          | 0/517 [00:00<?, ?it/s][A
+Loading weights:   0%|          | 2/517 [00:01<07:49,  1.10it/s][A
+Loading weights:  11%|█         | 58/517 [00:02<00:11, 38.60it/s][A
+Loading weights:  14%|█▍        | 74/517 [00:02<00:10, 42.91it/s][A
+Loading weights:  17%|█▋        | 86/517 [00:02<00:08, 50.44it/s][A
+Loading weights:  19%|█▉        | 98/517 [00:02<00:08, 46.77it/s][A
+Loading weights:  21%|██        | 107/517 [00:02<00:08, 46.11it/s][A
+Loading weights:  22%|██▏       | 115/517 [00:03<00:07, 50.41it/s][A
+Loading weights:  24%|██▍       | 123/517 [00:03<00:08, 46.99it/s][A
+Loading weights:  25%|██▌       | 130/517 [00:03<00:07, 50.44it/s][A
+Loading weights:  26%|██▋       | 137/517 [00:03<00:08, 45.65it/s][A
+Loading weights:  28%|██▊       | 144/517 [00:03<00:07, 50.09it/s][A
+Loading weights:  29%|██▉       | 152/517 [00:03<00:07, 46.05it/s][A
+Loading weights:  31%|███▏      | 162/517 [00:03<00:06, 53.57it/s][A
+Loading weights:  33%|███▎      | 169/517 [00:04<00:07, 48.78it/s][A
+Loading weights:  34%|███▍      | 176/517 [00:04<00:06, 52.82it/s][A
+Loading weights:  36%|███▌      | 184/517 [00:04<00:07, 47.27it/s][A
+Loading weights:  37%|███▋      | 192/517 [00:04<00:06, 53.48it/s][A
+Loading weights:  39%|███▊      | 200/517 [00:04<00:06, 47.66it/s][A
+Loading weights:  40%|████      | 208/517 [00:04<00:05, 53.57it/s][A
+Loading weights:  42%|████▏     | 216/517 [00:05<00:06, 48.01it/s][A
+Loading weights:  43%|████▎     | 224/517 [00:05<00:05, 54.43it/s][A
+Loading weights:  45%|████▍     | 232/517 [00:05<00:05, 48.03it/s][A
+Loading weights:  46%|████▋     | 240/517 [00:05<00:05, 54.15it/s][A
+Loading weights:  48%|████▊     | 248/517 [00:05<00:05, 48.05it/s][A
+Loading weights:  50%|████▉     | 256/517 [00:05<00:04, 53.93it/s][A
+Loading weights:  51%|█████     | 264/517 [00:06<00:05, 48.09it/s][A
+Loading weights:  53%|█████▎    | 272/517 [00:06<00:04, 53.95it/s][A
+Loading weights:  54%|█████▍    | 280/517 [00:06<00:04, 47.79it/s][A
+Loading weights:  56%|█████▌    | 288/517 [00:06<00:04, 53.94it/s][A
+Loading weights:  57%|█████▋    | 296/517 [00:06<00:04, 48.24it/s][A
+Loading weights:  59%|█████▉    | 304/517 [00:06<00:03, 54.21it/s][A
+Loading weights:  60%|██████    | 312/517 [00:06<00:04, 48.30it/s][A
+Loading weights:  62%|██████▏   | 322/517 [00:07<00:03, 56.30it/s][A
+Loading weights:  64%|██████▎   | 329/517 [00:07<00:03, 50.18it/s][A
+Loading weights:  65%|██████▍   | 336/517 [00:07<00:03, 53.67it/s][A
+Loading weights:  67%|██████▋   | 344/517 [00:07<00:03, 49.83it/s][A
+Loading weights:  68%|██████▊   | 354/517 [00:07<00:02, 56.73it/s][A
+Loading weights:  70%|██████▉   | 361/517 [00:07<00:03, 51.20it/s][A
+Loading weights:  71%|███████   | 368/517 [00:07<00:02, 54.71it/s][A
+Loading weights:  73%|███████▎  | 376/517 [00:08<00:02, 47.82it/s][A
+Loading weights:  74%|███████▍  | 384/517 [00:08<00:02, 53.84it/s][A
+Loading weights:  76%|███████▌  | 392/517 [00:08<00:02, 48.09it/s][A
+Loading weights:  77%|███████▋  | 400/517 [00:08<00:02, 53.93it/s][A
+Loading weights:  79%|███████▉  | 408/517 [00:08<00:02, 47.33it/s][A
+Loading weights:  81%|████████  | 418/517 [00:08<00:01, 57.01it/s][A
+Loading weights:  82%|████████▏ | 425/517 [00:09<00:01, 49.59it/s][A
+Loading weights:  84%|████████▎ | 432/517 [00:09<00:01, 53.16it/s][A
+Loading weights:  85%|████████▌ | 440/517 [00:09<00:01, 47.64it/s][A
+Loading weights:  87%|████████▋ | 448/517 [00:09<00:01, 54.02it/s][A
+Loading weights:  88%|████████▊ | 456/517 [00:09<00:01, 48.08it/s][A
+Loading weights:  90%|████████▉ | 464/517 [00:09<00:00, 54.28it/s][A
+Loading weights:  91%|█████████▏| 472/517 [00:10<00:00, 48.14it/s][A
+Loading weights:  93%|█████████▎| 482/517 [00:10<00:00, 56.24it/s][A
+Loading weights:  95%|█████████▍| 489/517 [00:10<00:00, 50.12it/s][A
+Loading weights:  96%|█████████▌| 496/517 [00:10<00:00, 53.86it/s][A
+Loading weights:  97%|█████████▋| 504/517 [00:10<00:00, 47.82it/s][A
+Loading weights:  99%|█████████▉| 512/517 [00:10<00:00, 54.44it/s][A
+Loading weights: 100%|██████████| 517/517 [00:10<00:00, 47.74it/s]
+Loading pipeline components...:  33%|███▎      | 2/6 [00:11<00:22,  5.58s/it]
+Loading pipeline components...:  50%|█████     | 3/6 [00:11<00:09,  3.30s/it]
+Loading weights:   0%|          | 0/776 [00:00<?, ?it/s][A
+Loading weights:  13%|█▎        | 101/776 [00:00<00:00, 965.95it/s][A
+Loading weights:  26%|██▌       | 198/776 [00:00<00:00, 918.69it/s][A
+Loading weights:  37%|███▋      | 290/776 [00:00<00:00, 877.63it/s][A
+Loading weights:  49%|████▊     | 378/776 [00:00<00:00, 851.45it/s][A
+Loading weights:  60%|█████▉    | 464/776 [00:00<00:00, 831.49it/s][A
+Loading weights:  72%|███████▏  | 560/776 [00:00<00:00, 870.20it/s][A
+Loading weights:  84%|████████▎ | 649/776 [00:00<00:00, 863.87it/s][A
+Loading weights:  95%|█████████▍| 737/776 [00:00<00:00, 867.78it/s][A
+Loading weights: 100%|██████████| 776/776 [00:00<00:00, 875.55it/s]
+Loading pipeline components...:  67%|██████▋   | 4/6 [00:12<00:05,  2.57s/it]
+Loading pipeline components...: 100%|██████████| 6/6 [00:29<00:00,  5.51s/it]
+Loading pipeline components...: 100%|██████████| 6/6 [00:29<00:00,  4.86s/it]
+{'encoded': 8, 'cached': 8, 'prior_device': 'cuda', 'prior_dtype': 'float16', 'load_seconds': 45.2, 'encode_seconds': 6.2, 'gpu_memory_gb_with_prior': 10.56}
+{'prior_released': True, 'gpu_memory_gb_after_release': 3.39, 'device': 'cuda', 'precision': 'float16'}
+{'prompt_cache': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/state/prompt_cache.safetensors', 'prompts': 8, 'hint_cache': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/state/hint_cache.safetensors', 'hints': 60}
+{'stage': 'encode', 'status': 'ok', 'seconds': 170.1}
+Cropped test photographs beside their depth hints -> /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_hints.jpg
+<IPython.core.display.Image object>
+
+[Image saved to: /tmp/tmp37ni3mzu.jpeg]
+[colab] Executing cell 7/11 - kandinsky_controlnet_depth-20...
+Running stage 'frozen' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/frozen.log
+W1004 13:15:55.375000 4452 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1004 13:15:55.435000 4452 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unable to import `torchao` Tensor objects. This may affect loading checkpoints serialized with `torchao`
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 398/398 [00:00<00:00, 5084.64it/s]
+{'frozen_denoising_mse': {'validation': 0.070686, 'test': 0.072207}, 'by_timestep_test': {'100': 0.273275, '300': 0.065541, '500': 0.017646, '700': 0.003976, '900': 0.000596}, 'seconds': 12.9}
+{'share_of_test_mean_by_timestep': {'100': 0.7569, '300': 0.1815, '500': 0.0489, '700': 0.011, '900': 0.0017}, 'note': 'epsilon-prediction: the loss falls as the timestep (noise level) rises, so the smallest timestep dominates the mean'}
+{'generated': 12, 'steps': 20, 'guidance_scale': 4.0, 'seconds': 46.6, 'adapted': False}
+Loading weights:   0%|          | 0/458 [00:00<?, ?it/s]
+Loading weights:   4%|▍         | 20/458 [00:00<00:02, 164.51it/s]
+Loading weights:   8%|▊         | 37/458 [00:00<00:03, 108.15it/s]
+Loading weights:  11%|█         | 49/458 [00:00<00:04, 88.51it/s]
+Loading weights:  14%|█▎        | 62/458 [00:00<00:05, 77.79it/s]
+Loading weights:  17%|█▋        | 78/458 [00:00<00:04, 79.44it/s]
+Loading weights:  21%|██        | 94/458 [00:01<00:04, 79.03it/s]
+Loading weights:  24%|██▍       | 110/458 [00:01<00:04, 81.66it/s]
+Loading weights:  28%|██▊       | 126/458 [00:01<00:03, 87.94it/s]
+Loading weights:  31%|███       | 142/458 [00:01<00:03, 86.81it/s]
+Loading weights:  34%|███▍      | 158/458 [00:01<00:03, 85.34it/s]
+Loading weights:  38%|███▊      | 174/458 [00:02<00:03, 83.69it/s]
+Loading weights:  41%|████▏     | 190/458 [00:02<00:03, 82.10it/s]
+Loading weights:  45%|████▍     | 206/458 [00:02<00:03, 81.33it/s]
+Loading weights:  48%|████▊     | 222/458 [00:02<00:02, 80.99it/s]
+Loading weights:  52%|█████▏    | 238/458 [00:02<00:02, 81.17it/s]
+Loading weights:  55%|█████▌    | 254/458 [00:03<00:02, 80.30it/s]
+Loading weights:  59%|█████▉    | 270/458 [00:03<00:02, 80.00it/s]
+Loading weights:  62%|██████▏   | 286/458 [00:03<00:02, 80.19it/s]
+Loading weights:  66%|██████▌   | 302/458 [00:03<00:01, 80.39it/s]
+Loading weights:  69%|██████▉   | 316/458 [00:03<00:01, 90.24it/s]
+Loading weights:  71%|███████   | 326/458 [00:03<00:01, 87.08it/s]
+Loading weights:  73%|███████▎  | 336/458 [00:04<00:01, 79.00it/s]
+Loading weights:  76%|███████▋  | 350/458 [00:04<00:01, 75.81it/s]
+Loading weights:  80%|███████▉  | 366/458 [00:04<00:01, 76.93it/s]
+Loading weights:  83%|████████▎ | 382/458 [00:04<00:00, 78.54it/s]
+Loading weights:  87%|████████▋ | 399/458 [00:04<00:00, 94.48it/s]
+Loading weights:  93%|█████████▎| 424/458 [00:04<00:00, 124.39it/s]
+Loading weights:  97%|█████████▋| 446/458 [00:04<00:00, 143.12it/s]
+Loading weights: 100%|██████████| 458/458 [00:05<00:00, 87.38it/s]
+[transformers] [1mDPTForDepthEstimation LOAD REPORT[0m from: /content/weights/dpt-large
+Key                                                            | Status  |
+---------------------------------------------------------------+---------+-
+neck.fusion_stage.layers.0.residual_layer1.convolution2.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution1.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.bias   | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution1.bias   | MISSING |
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+{'frozen_clip': {'clip_prompt_similarity': 32.305, 'label_accuracy': 0.75, 'reference_similarity': 70.583}, 'real_photo_reference': {'clip_prompt_similarity': 30.25, 'label_accuracy': 0.9167, 'reference_similarity': 57.722}, 'reference_kind': 'leave-one-out real-photo reference'}
+{'frozen_depth_fidelity': {'depth_correlation': 0.864233, 'depth_aligned_mae': 0.102967, 'mismatched_depth_correlation': 0.25601, 'mismatched_depth_aligned_mae': 0.241902}, 'real_photo_depth_check': {'depth_correlation': 1.0, 'depth_aligned_mae': 0.0}}
+{'grid': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_frozen_grid.jpg'}
+{'stage': 'frozen', 'status': 'ok', 'seconds': 177.0}
+Frozen model: each hint beside the image generated from it -> /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_frozen_grid.jpg
+<IPython.core.display.Image object>
+
+[Image saved to: /tmp/tmpupp8nxwd.jpeg]
+[colab] Executing cell 8/11 - kandinsky_controlnet_depth-23...
+Running stage 'activity' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/activity.log
+W1004 13:18:54.589000 5199 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1004 13:18:54.650000 5199 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unable to import `torchao` Tensor objects. This may affect loading checkpoints serialized with `torchao`
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 398/398 [00:00<00:00, 5181.75it/s]
+Loading weights:   0%|          | 0/458 [00:00<?, ?it/s]
+Loading weights:   3%|▎         | 14/458 [00:00<00:05, 88.14it/s]
+Loading weights:   7%|▋         | 30/458 [00:00<00:04, 94.84it/s]
+Loading weights:  10%|█         | 46/458 [00:00<00:04, 86.50it/s]
+Loading weights:  14%|█▎        | 62/458 [00:00<00:04, 83.15it/s]
+Loading weights:  17%|█▋        | 78/458 [00:00<00:04, 81.98it/s]
+Loading weights:  21%|██        | 94/458 [00:01<00:04, 81.12it/s]
+Loading weights:  24%|██▍       | 110/458 [00:01<00:04, 80.81it/s]
+Loading weights:  28%|██▊       | 126/458 [00:01<00:04, 80.48it/s]
+Loading weights:  31%|███       | 142/458 [00:01<00:03, 80.54it/s]
+Loading weights:  34%|███▍      | 158/458 [00:01<00:03, 80.54it/s]
+Loading weights:  38%|███▊      | 174/458 [00:02<00:03, 79.71it/s]
+Loading weights:  41%|████▏     | 190/458 [00:02<00:03, 80.03it/s]
+Loading weights:  45%|████▍     | 206/458 [00:02<00:03, 80.15it/s]
+Loading weights:  48%|████▊     | 222/458 [00:02<00:02, 79.98it/s]
+Loading weights:  52%|█████▏    | 238/458 [00:02<00:02, 79.07it/s]
+Loading weights:  55%|█████▌    | 254/458 [00:03<00:02, 80.10it/s]
+Loading weights:  59%|█████▉    | 270/458 [00:03<00:02, 80.14it/s]
+Loading weights:  62%|██████▏   | 286/458 [00:03<00:02, 80.36it/s]
+Loading weights:  66%|██████▌   | 302/458 [00:03<00:01, 80.13it/s]
+Loading weights:  69%|██████▉   | 318/458 [00:03<00:01, 79.38it/s]
+Loading weights:  73%|███████▎  | 334/458 [00:04<00:01, 80.25it/s]
+Loading weights:  76%|███████▋  | 350/458 [00:04<00:01, 79.73it/s]
+Loading weights:  80%|███████▉  | 366/458 [00:04<00:01, 79.62it/s]
+Loading weights:  83%|████████▎ | 382/458 [00:04<00:00, 80.05it/s]
+Loading weights:  87%|████████▋ | 399/458 [00:04<00:00, 95.32it/s]
+Loading weights:  92%|█████████▏| 420/458 [00:04<00:00, 117.04it/s]
+Loading weights:  96%|█████████▌| 440/458 [00:05<00:00, 132.49it/s]
+Loading weights:  99%|█████████▉| 455/458 [00:05<00:00, 89.66it/s]
+Loading weights: 100%|██████████| 458/458 [00:05<00:00, 85.25it/s]
+[transformers] [1mDPTForDepthEstimation LOAD REPORT[0m from: /content/weights/dpt-large
+Key                                                            | Status  |
+---------------------------------------------------------------+---------+-
+neck.fusion_stage.layers.0.residual_layer1.convolution1.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution1.bias   | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.bias   | MISSING |
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+{'hint_given': 'flat', 'depth_correlation_with_original_layout': {'section_6_own_hint': 0.9204, 'this_activity': 0.470469}, 'section_6_mismatched_baseline': 0.25601, 'clip_prompt_similarity': 32.572, 'written_at': '2026-10-04T13:19:34Z', 'file': 'outputs/activity_flat.json'}
+{'grid': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_activity_grid.jpg'}
+{'stage': 'activity', 'status': 'ok', 'seconds': 117.4}
+Section 6 image, the changed hint, and the image generated from it -> /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_activity_grid.jpg
+<IPython.core.display.Image object>
+
+[Image saved to: /tmp/tmpjfo18s0w.jpeg]
+[colab] Executing cell 9/11 - kandinsky_controlnet_depth-26...
+Running stage 'adapt' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/adapt.log
+W1004 13:20:53.347000 5707 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1004 13:20:53.404000 5707 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unable to import `torchao` Tensor objects. This may affect loading checkpoints serialized with `torchao`
+{'epoch': 0, 'train_loss': None, 'val_denoising_mse': 0.070686, 'note': 'frozen model (LoRA at initialisation: B = 0)'}
+{'epoch': 1, 'train_loss': 0.0798, 'val_denoising_mse': 0.07056}
+{'epoch': 2, 'train_loss': 0.1336, 'val_denoising_mse': 0.070393}
+{'epoch': 3, 'train_loss': 0.0385, 'val_denoising_mse': 0.070232}
+{'epoch': 4, 'train_loss': 0.0663, 'val_denoising_mse': 0.070062}
+{'trainable_parameters': 1646592, 'total_parameters': 1255075804, 'steps': 144, 'best_epoch': 4, 'precision': 'float16 autocast + GradScaler', 'seconds': 77.7, 'gpu_memory_gb': 2.71}
+{'artifact': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_adapter', 'format': 'org.valcorza.kandinsky-controlnet-depth.adapter.v1', 'tensors': 176, 'bytes': 6607664, 'sha256': 'e5e108770862df44...'}
+{'stage': 'adapt', 'status': 'ok', 'seconds': 180.6}
+[colab] Executing cell 10/11 - kandinsky_controlnet_depth-28...
+Running stage 'evaluate' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/evaluate.log
+W1004 13:24:00.616000 6465 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1004 13:24:00.676000 6465 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unable to import `torchao` Tensor objects. This may affect loading checkpoints serialized with `torchao`
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 398/398 [00:00<00:00, 22836.92it/s]
+Loading weights:   0%|          | 0/458 [00:00<?, ?it/s]
+Loading weights:   5%|▍         | 22/458 [00:00<00:02, 168.85it/s]
+Loading weights:   9%|▊         | 39/458 [00:00<00:03, 122.05it/s]
+Loading weights:  11%|█▏        | 52/458 [00:00<00:03, 108.78it/s]
+Loading weights:  14%|█▍        | 64/458 [00:00<00:04, 90.45it/s]
+Loading weights:  17%|█▋        | 78/458 [00:00<00:04, 82.63it/s]
+Loading weights:  21%|██        | 94/458 [00:01<00:04, 81.64it/s]
+Loading weights:  24%|██▍       | 110/458 [00:01<00:04, 80.74it/s]
+Loading weights:  28%|██▊       | 126/458 [00:01<00:04, 80.25it/s]
+Loading weights:  31%|███       | 142/458 [00:01<00:03, 81.22it/s]
+Loading weights:  34%|███▍      | 158/458 [00:01<00:03, 81.76it/s]
+Loading weights:  38%|███▊      | 174/458 [00:02<00:03, 80.67it/s]
+Loading weights:  41%|████▏     | 190/458 [00:02<00:03, 80.24it/s]
+Loading weights:  45%|████▍     | 206/458 [00:02<00:03, 80.28it/s]
+Loading weights:  48%|████▊     | 222/458 [00:02<00:02, 79.76it/s]
+Loading weights:  52%|█████▏    | 238/458 [00:02<00:02, 79.65it/s]
+Loading weights:  55%|█████▌    | 254/458 [00:03<00:02, 79.47it/s]
+Loading weights:  59%|█████▉    | 270/458 [00:03<00:02, 79.50it/s]
+Loading weights:  62%|██████▏   | 286/458 [00:03<00:02, 79.72it/s]
+Loading weights:  66%|██████▌   | 302/458 [00:03<00:01, 79.70it/s]
+Loading weights:  69%|██████▉   | 318/458 [00:03<00:01, 80.09it/s]
+Loading weights:  73%|███████▎  | 334/458 [00:04<00:01, 80.29it/s]
+Loading weights:  76%|███████▋  | 350/458 [00:04<00:01, 80.17it/s]
+Loading weights:  80%|███████▉  | 366/458 [00:04<00:01, 80.01it/s]
+Loading weights:  83%|████████▎ | 382/458 [00:04<00:00, 80.37it/s]
+Loading weights:  87%|████████▋ | 399/458 [00:04<00:00, 95.32it/s]
+Loading weights:  93%|█████████▎| 424/458 [00:04<00:00, 125.71it/s]
+Loading weights:  97%|█████████▋| 444/458 [00:04<00:00, 140.05it/s]
+Loading weights: 100%|██████████| 458/458 [00:05<00:00, 87.64it/s]
+[transformers] [1mDPTForDepthEstimation LOAD REPORT[0m from: /content/weights/dpt-large
+Key                                                            | Status  |
+---------------------------------------------------------------+---------+-
+neck.fusion_stage.layers.0.residual_layer1.convolution2.bias   | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution1.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution1.bias   | MISSING |
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+{'denoising_mse_validation': {'frozen': 0.070686, 'adapted': 0.070062}}
+{'denoising_mse_test': {'frozen': 0.072207, 'adapted': 0.071616}}
+{'denoising_mse_test_by_timestep': {'100': {'frozen': 0.273275, 'adapted': 0.272047}, '300': {'frozen': 0.065541, 'adapted': 0.064627}, '500': {'frozen': 0.017646, 'adapted': 0.017114}, '700': {'frozen': 0.003976, 'adapted': 0.003733}, '900': {'frozen': 0.000596, 'adapted': 0.000558}}}
+{'clip_prompt_similarity': {'frozen': 32.305, 'adapted': 31.076, 'real_photos': 30.25}}
+{'label_accuracy': {'frozen': 0.75, 'adapted': 0.75, 'real_photos': 0.9167}}
+{'reference_similarity': {'frozen': 70.583, 'adapted': 69.536, 'real_photos': 57.722}}
+{'depth_correlation': {'frozen': 0.864233, 'adapted': 0.852807, 'mismatched_baseline': 0.25601}}
+{'depth_aligned_mae': {'frozen': 0.102967, 'adapted': 0.11356, 'mismatched_baseline': 0.241902}}
+{'grid': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_adapted_grid.jpg'}
+{'test_denoising_mse_change': -0.000591, 'note': 'held-out observation, not asserted'}
+{'report': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_evaluation_report.json'}
+{'stage': 'evaluate', 'status': 'ok', 'seconds': 162.9}
+Hint, frozen model, adapted model: same prompts, same seeds -> /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_adapted_grid.jpg
+<IPython.core.display.Image object>
+
+[Image saved to: /tmp/tmpuukkbws7.jpeg]
+[colab] Executing cell 11/11 - kandinsky_controlnet_depth-31...
+Running stage 'reload' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/logs/reload.log
+{'artifact': '/content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_adapter', 'format': 'org.valcorza.kandinsky-controlnet-depth.adapter.v1', 'tensors': 176, 'bytes': 6607664, 'sha256': 'e5e108770862df44...'}
+W1004 13:26:46.403000 7160 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1004 13:26:46.455000 7160 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unable to import `torchao` Tensor objects. This may affect loading checkpoints serialized with `torchao`
+{'reload_parity': {'denoising_mse_diff': 0.0, 'mean_abs_pixel_diff': 0.0, 'compared_with': "the trained in-memory model of the 'adapt' process"}, 'reloaded_best_epoch': 4, 'tolerance': {'denoising_mse_diff': 1e-06, 'mean_abs_pixel_diff': 1.0}}
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 398/398 [00:00<00:00, 5787.45it/s]
+Loading weights:   0%|          | 0/458 [00:00<?, ?it/s]
+Loading weights:   5%|▍         | 22/458 [00:00<00:02, 184.27it/s]
+Loading weights:   9%|▉         | 41/458 [00:00<00:02, 149.06it/s]
+Loading weights:  12%|█▏        | 57/458 [00:00<00:03, 104.15it/s]
+Loading weights:  15%|█▌        | 69/458 [00:00<00:04, 92.58it/s]
+Loading weights:  17%|█▋        | 79/458 [00:00<00:05, 75.42it/s]
+Loading weights:  21%|██        | 94/458 [00:01<00:04, 73.48it/s]
+Loading weights:  24%|██▍       | 110/458 [00:01<00:04, 74.53it/s]
+Loading weights:  28%|██▊       | 126/458 [00:01<00:04, 73.82it/s]
+Loading weights:  31%|███       | 142/458 [00:01<00:03, 79.75it/s]
+Loading weights:  34%|███▍      | 158/458 [00:01<00:03, 82.82it/s]
+Loading weights:  38%|███▊      | 174/458 [00:02<00:03, 86.32it/s]
+Loading weights:  41%|████▏     | 190/458 [00:02<00:03, 85.39it/s]
+Loading weights:  45%|████▍     | 206/458 [00:02<00:02, 84.04it/s]
+Loading weights:  48%|████▊     | 222/458 [00:02<00:02, 82.92it/s]
+Loading weights:  52%|█████▏    | 238/458 [00:02<00:02, 85.69it/s]
+Loading weights:  55%|█████▌    | 254/458 [00:02<00:02, 83.90it/s]
+Loading weights:  59%|█████▉    | 270/458 [00:03<00:02, 83.19it/s]
+Loading weights:  62%|██████▏   | 286/458 [00:03<00:02, 82.30it/s]
+Loading weights:  66%|██████▌   | 302/458 [00:03<00:01, 81.91it/s]
+Loading weights:  69%|██████▉   | 318/458 [00:03<00:01, 81.99it/s]
+Loading weights:  73%|███████▎  | 334/458 [00:03<00:01, 82.11it/s]
+Loading weights:  76%|███████▋  | 350/458 [00:04<00:01, 81.18it/s]
+Loading weights:  80%|███████▉  | 366/458 [00:04<00:01, 81.15it/s]
+Loading weights:  83%|████████▎ | 382/458 [00:04<00:00, 80.84it/s]
+Loading weights:  87%|████████▋ | 400/458 [00:04<00:00, 93.21it/s]
+Loading weights:  95%|█████████▍| 434/458 [00:04<00:00, 136.72it/s]
+Loading weights:  98%|█████████▊| 450/458 [00:05<00:00, 91.26it/s]
+Loading weights: 100%|██████████| 458/458 [00:05<00:00, 88.73it/s]
+[transformers] [1mDPTForDepthEstimation LOAD REPORT[0m from: /content/weights/dpt-large
+Key                                                            | Status  |
+---------------------------------------------------------------+---------+-
+neck.fusion_stage.layers.0.residual_layer1.convolution1.weight | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution1.bias   | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.bias   | MISSING |
+neck.fusion_stage.layers.0.residual_layer1.convolution2.weight | MISSING |
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+{'new_prompt': 'a photo of a House Finch (Haemorhous mexicanus) perched on a snow-covered branch in winter', 'clip_prompt_similarity': 31.796, 'depth_correlation': 0.91702, 'seconds': 7.61, 'note': 'sanity check, not an evaluation'}
+outputs/:
+  - outputs/activity.json (3.3 KB)
+  - outputs/activity_flat.json (3.3 KB)
+  - outputs/adapt.json (1.6 KB)
+  - outputs/encode.json (1.1 KB)
+  - outputs/frozen.json (22.6 KB)
+  - outputs/kandinsky_controlnet_depth_activity_grid.jpg (61.2 KB)
+  - outputs/kandinsky_controlnet_depth_adapted_grid.jpg (119.4 KB)
+  - outputs/kandinsky_controlnet_depth_adapter/adapter.safetensors (6452.8 KB)
+  - outputs/kandinsky_controlnet_depth_adapter/manifest.json (13.2 KB)
+  - outputs/kandinsky_controlnet_depth_evaluation_report.json (33.9 KB)
+  - outputs/kandinsky_controlnet_depth_frozen_grid.jpg (72.6 KB)
+  - outputs/kandinsky_controlnet_depth_hints.jpg (77.3 KB)
+  - outputs/kandinsky_controlnet_depth_new_prompt_0.png (374.6 KB)
+  - outputs/kandinsky_controlnet_depth_new_prompt_1.png (355.3 KB)
+  - outputs/kandinsky_controlnet_depth_result.json (6.3 KB)
+  - outputs/kandinsky_controlnet_depth_sample_captions.csv (2.3 KB)
+  - outputs/prepare.json (2.2 KB)
+  - outputs/reload.json (0.4 KB)
+  - outputs/weights.json (2.1 KB)
+{'stage': 'reload', 'status': 'ok', 'seconds': 120.2}
+New prompt on the first test layout (reloaded adapter) -> /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_new_prompt_0.png
+<IPython.core.display.Image object>
+
+[Image saved to: /tmp/tmpf524j37b.png]
+New prompt on the second test layout (reloaded adapter) -> /content/outputs/kandinsky_controlnet_depth/5a1517e18af0/outputs/kandinsky_controlnet_depth_new_prompt_1.png
+<IPython.core.display.Image object>
+
+[Image saved to: /tmp/tmpe1ml1mkj.png]
+[colab] Saving notebook with outputs to '/home/kurt/colab-runs/kandinsky-controlnet-depth-pipeline-b9d2829-f75f39/kandinsky_controlnet_depth_colab_b9d2829_colab-cli-t4_output.ipynb'...

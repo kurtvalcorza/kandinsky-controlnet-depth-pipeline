@@ -117,7 +117,7 @@ The code reports these measures, named as the code reports them:
 
 1. **`denoising_mse`** from `evaluate`: the mean squared error between the UNet's noise prediction and the true Gaussian noise added to MoVQ latents of held-out photographs. The UNet receives each record's caption embedding and its own hint. Timesteps are `100`, `300`, `500`, `700` and `900`, with a per-timestep breakdown. It is the training objective on photographs the adapter never trained on, and it compares frozen and adapted models on identical inputs.
 2. **`clip_prompt_similarity`**, **`label_accuracy`** and **`reference_similarity`** from `score_generations`: the cosine similarity × 100 between each generated image and its prompt; the fraction of images whose nearest caption is their own; and the similarity to held-out real photographs with the same caption. The scorer is the pinned CLIP ViT-B/32.
-3. **`real_photo_baseline`**: the same three CLIP measures on the held-out real photographs, which is the ceiling a generator imitating them can approach.
+3. **`real_photo_reference`** (alias `real_photo_baseline`): the same three CLIP measures on the held-out real photographs, computed leave-one-out (each photograph's reference similarity uses the other held-out photographs of its caption, itself excluded). It is a reference line, not a ceiling: a generator conditioned on the prompt can score above it on prompt and reference similarity. The sample photographs are public web images that the generator's or the scorer's training data may include, so the CLIP numbers on them may be optimistic.
 4. **`depth_correlation`** and **`depth_aligned_mae`** from `score_depth_fidelity`: the pinned estimator measures the depth of each generated image, and both maps are divided by 255. The correlation is the Pearson correlation between that map and the hint. The aligned error is the mean absolute difference after a least-squares scale and offset alignment, in hint units from 0 to 1.
 5. **`mismatched_depth_correlation`** and **`mismatched_depth_aligned_mae`**: the same numbers against another image's hint. They are the chance baseline for an image that ignores its hint.
 
@@ -220,7 +220,7 @@ The following uses are unacceptable even where the pipeline would work:
 - `evaluate(records, *, seed=0) -> dict`: held-out hint-conditioned denoising MSE.
 - `adapt(train, val=None, *, epochs=4, lr=1e-4, batch_size=1, seed=0) -> dict`: bounded AdamW LoRA fine-tuning.
 - `save_artifact(path, metadata=None) -> dict` and `from_artifact(path, ...)`: `adapter.safetensors` (176 LoRA tensors, 1,646,592 parameters) and `manifest.json`.
-- `metrics.score_generations`, `metrics.score_depth_fidelity`, `metrics.real_photo_baseline`, `metrics.real_photo_depth_ceiling`.
+- `metrics.score_generations`, `metrics.score_depth_fidelity`, `metrics.real_photo_reference` (alias `real_photo_baseline`), `metrics.real_photo_depth_ceiling`.
 
 ## Deployment notes
 

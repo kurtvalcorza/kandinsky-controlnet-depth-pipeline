@@ -792,8 +792,17 @@ def split_dataset(
     test_fraction: float = 0.2,
     seed: int = 0,
 ) -> dict[str, list[dict[str, Any]]]:
-    """Seeded shuffle of a BYOD dataset into train/validation/test, grouped by caption, after de-duplicating
-    images. Every caption keeps at least one test record when it has three or more images."""
+    """Seeded split of a BYOD dataset into train/validation/test, STRATIFIED WITHIN EACH CAPTION (every caption with
+    three or more images appears in all three sets, so the test measures new photographs of seen captions, not unseen
+    captions), after removing byte-identical images.
+
+    Per caption, a pool of n >= 3 distinct images gives max(1, round(n * test_fraction)) test and
+    round(n * val_fraction) validation images -- one each for 3..7 images at the default 20 % / 20 % -- and the rest
+    to training; a caption with one or two images goes to training only. The split needs at least one test image and
+    at least MIN_TRAIN_RECORDS training images, so the smallest accepted dataset is six distinct images of one caption.
+
+    A random split assumes the photographs are independent: near-duplicates (bursts, crops or edits of one scene) are
+    not detected, and if they land on both sides the held-out numbers are optimistic. Remove them, or keep one."""
     if not (0.0 <= val_fraction < 1.0 and 0.0 < test_fraction < 1.0 and val_fraction + test_fraction < 1.0):
         raise ValueError("fractions must satisfy 0 <= val < 1, 0 < test < 1, val + test < 1")
     checked = validate_dataset(records)["records"]
@@ -817,7 +826,11 @@ def split_dataset(
     for part in splits.values():
         rng.shuffle(part)
     if len(splits["train"]) < MIN_TRAIN_RECORDS:
-        raise ValueError(f"split leaves {len(splits['train'])} training records; at least {MIN_TRAIN_RECORDS} are required")
+        raise ValueError(
+            f"split leaves {len(splits['train'])} training records; at least {MIN_TRAIN_RECORDS} are required. Each caption "
+            "with 3..7 distinct images gives one test and one validation image (about 20 % each from 8 on) and a caption with "
+            "1..2 images goes to training only, so at least 6 distinct images are needed, for example six of one caption"
+        )
     if not splits["test"]:
         raise ValueError("split leaves no test record; give at least one caption three or more images")
     return splits
