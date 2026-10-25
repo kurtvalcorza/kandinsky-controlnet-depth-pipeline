@@ -101,6 +101,8 @@ Two properties are handled in the open. **The prior pipeline can be released bef
 
 **About the decoder weights.** The upstream repository's `main` branch ships only pickled `.bin` files. This notebook downloads the safetensors files of the repository's open, unmerged conversion pull request, addressed by its immutable commit and verified by SHA-256. Whether that conversion is bit-identical to `main` is checked separately by `tools/verify_conversion.py` in the repository; that check is recorded in the model card."""
 
+H = 'the 2026-10-04 Colab T4 run of revision `b9d2829` (notebook blob `a223380a`, recorded in `docs/release-verification.md`)'
+
 TEMPLATE = {
     "package": "kandinsky_controlnet_depth_pipeline",
     "repo_name": REPO,
@@ -123,9 +125,9 @@ TEMPLATE = {
         "in a fresh process on identical inputs, and reloads it in a second fresh process to verify parity with the trained "
         "in-memory model before rendering a new prompt on an existing depth layout. The default path needs no repository clone, "
         "no DIMER worker or service, no credential, no upload dialog, no configuration edit and no runtime restart (NOTEBOOK_SPEC "
-        "2.2 §5). The whole run took about 19 minutes on a Kaggle T4 (1,156.2 s, measured 2026-09-29 with an empty model cache, "
-        "so the downloads are included) at the previous revision of this notebook, which ran the same stages; this revision changes "
-        "explanations and small printed outputs only."
+        "2.2 §5). In " + H + " the whole run took 1,386.4 s "
+        "on a fresh Tesla T4, downloads included; the previous revision took 1,156.2 s on a Kaggle T4 (2026-09-29). Hosted runs "
+        "of this revision are pending; it changes explanations and the metadata only."
     ),
     "byod": (
         "After the tutorial workflow completes, set `USE_BYOD = True` in Section 4 and re-run from that cell to supply your own "
@@ -382,11 +384,16 @@ TEMPLATE = {
                 "reference similarity is measured against the *other* held-out photographs of its caption, itself excluded. It is "
                 "a reference line, not a ceiling: a generator conditioned on the prompt can match the prompt more closely than a "
                 "photograph does, so generated images can score above it on prompt similarity, and on reference similarity, where "
-                "they are compared with all the held-out photographs of their caption.\n"
+                "they are compared with all the held-out photographs of their caption, including the photograph whose depth hint "
+                "they were generated from. That comparison is **not like-for-like**: each real photograph is compared only with "
+                "the others, so part of the gap between the generated and the real reference similarity (70.58 against 57.72 in "
+                "" + H + ") is built into the comparison, not earned by the generator.\n"
                 "3. **Depth fidelity** (`score_depth_fidelity`): the estimator measures the depth of each generated image, and "
                 "the notebook reports its Pearson correlation with the hint and the mean error after aligning scale and offset. "
                 "The same numbers against *another* image's hint are the mismatched-hint baseline — what an image that ignored its "
-                "hint would score. `real_photo_depth_ceiling` re-measures the real photographs as a check of the measurement itself.\n\n"
+                "hint would score. `real_photo_depth_ceiling` re-measures the real photographs: their hints are the same estimator's depth of the "
+                "same photographs, so this check gives 1.0 / 0.0 **by construction**. It confirms that the code path is wired "
+                "correctly; it says nothing about the estimator's accuracy or about what a generator could reach.\n\n"
                 "The stage also keeps the twelve generated images in the run directory, so Sections 7 and 9 can show them beside "
                 "their own results.\n\n"
                 "**Predict first:** will the depth correlation of the frozen model's images be closer to 1.0 or to the mismatched "
@@ -396,7 +403,7 @@ TEMPLATE = {
                 "t = 900 — so the smallest timestep supplies most of the mean (the `share_of_test_mean_by_timestep` line); "
                 "generated birds whose layout follows the hint; depth correlation well above the mismatched baseline; CLIP prompt "
                 "similarity of the generated images that may sit above the real photographs' (the reference is not a ceiling); and "
-                "a real-photo depth check near 1.0, which shows the measurement is consistent rather than that 1.0 is reachable."
+                "a real-photo depth check of 1.0 / 0.0, which holds by construction and only shows the code path is wired correctly."
             ),
             "code": (
                 "STEPS = 20  # @param {{type:\"integer\"}}\n"
@@ -411,11 +418,14 @@ TEMPLATE = {
                 "A ControlNet-style model is trained to follow its hint, so the frozen model's depth correlation is expected to sit "
                 "well above the mismatched baseline even before any adaptation; how far below 1.0 it stays reflects both the "
                 "generator and the estimator's own noise. CLIP label accuracy asks whether CLIP can tell which of the six species "
-                "each generated image shows. In the recorded Kaggle T4 run of the previous revision the frozen model already reached "
+                "each generated image shows. In " + H + " (the same values as the Kaggle T4 run of the previous revision) the frozen model already reached "
                 "0.75 (9 of 12) against chance 0.17 and 0.92 for the real photographs: the pretrained model already separates most "
                 "of the six species, so adaptation has little room on 12 images, and one image is 0.083. Its prompt similarity "
-                "(32.3) was above the real photographs' (30.3), because a generator renders the prompt more literally than a "
-                "photograph does — which is why the real photographs are a reference, not a ceiling.\n\n"
+                "(32.3) was above the real photographs' (30.3). Two things push it up, and this notebook cannot separate them: a "
+                "generator renders the prompt more literally than a photograph does, and the generator is conditioned on a CLIP "
+                "ViT-G/14 image embedding from the Kandinsky prior while the scorer is another LAION-trained CLIP (ViT-B/32 "
+                "laion2B), so the images are made from the kind of embedding the scorer measures. That makes the CLIP readings "
+                "partly circular, and it is why the real photographs are a reference, not a ceiling.\n\n"
                 "The denoising loss **falls** as the timestep rises. The UNet predicts the noise that was added (ε-prediction: the "
                 "scheduler's `prediction_type` is `epsilon`). At t = 900 the latent is almost all noise, so the noise is nearly the "
                 "input itself and is easy to predict; at t = 100 only a little noise sits on the image and is hard to separate from "
@@ -615,18 +625,14 @@ TEMPLATE = {
         "benchmark superiority, production fitness, image quality beyond the checks shown, or that the pinned safetensors "
         "conversion is bit-identical to the upstream `.bin` weights.\n\n"
         "## References\n\n"
-        "- Repository README: https://github.com/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/README.md\n"
-        "- Repository model card: https://github.com/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/MODEL_CARD.md\n"
-        "- Weights notes: https://github.com/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/docs/WEIGHTS.md\n"
-        "- Hugging Face decoder repository: https://huggingface.co/kandinsky-community/kandinsky-2-2-controlnet-depth (revision `{MODEL_REVISION}`, conversion pull request #5)\n"
-        "- Hugging Face prior repository: https://huggingface.co/kandinsky-community/kandinsky-2-2-prior\n"
-        "- Hugging Face depth estimator: https://huggingface.co/Intel/dpt-large\n"
-        "- Shakhmatov, A., et al. (2023). Kandinsky 2.2: https://github.com/ai-forever/Kandinsky-2\n"
-        "- Zhang, L., Rao, A., & Agrawala, M. (2023). Adding conditional control to text-to-image diffusion models. ICCV: https://arxiv.org/abs/2302.05543\n"
-        "- Ranftl, R., Bochkovskiy, A., & Koltun, V. (2021). Vision transformers for dense prediction. ICCV: https://arxiv.org/abs/2103.13413\n"
-        "- uv (the installer that builds the isolated environment): https://docs.astral.sh/uv/\n"
-        "- Hu, E. J., et al. (2022). LoRA: Low-rank adaptation of large language models. ICLR: https://arxiv.org/abs/2106.09685\n"
-        "- Cherti, M., et al. (2023). Reproducible scaling laws for contrastive language-image learning. CVPR (the LAION CLIP scorer): https://arxiv.org/abs/2212.07143\n"
-        "- DIMER Notebook Specification 2.2 and Model Card Specification 1.2 (in the ml-worker repository)\n"
+        "[1] A. Shakhmatov et al., \"Kandinsky 2.2,\" ai-forever/Kandinsky-2, GitHub repository, 2023. [Online]. Available: https://github.com/ai-forever/Kandinsky-2\n\n"
+        "[2] kandinsky-community, \"kandinsky-2-2-controlnet-depth\" (revision `{MODEL_REVISION}`, conversion pull request #5) and \"kandinsky-2-2-prior,\" Hugging Face. [Online]. Available: https://huggingface.co/kandinsky-community/kandinsky-2-2-controlnet-depth; https://huggingface.co/kandinsky-community/kandinsky-2-2-prior\n\n"
+        "[3] L. Zhang, A. Rao, and M. Agrawala, \"Adding conditional control to text-to-image diffusion models,\" in *Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV)*, 2023. [Online]. Available: https://arxiv.org/abs/2302.05543\n\n"
+        "[4] R. Ranftl, A. Bochkovskiy, and V. Koltun, \"Vision transformers for dense prediction,\" in *Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV)*, 2021; depth estimator Intel/dpt-large. [Online]. Available: https://arxiv.org/abs/2103.13413; https://huggingface.co/Intel/dpt-large\n\n"
+        "[5] E. J. Hu et al., \"LoRA: Low-rank adaptation of large language models,\" in *Proc. Int. Conf. Learn. Represent. (ICLR)*, 2022. [Online]. Available: https://arxiv.org/abs/2106.09685\n\n"
+        "[6] M. Cherti et al., \"Reproducible scaling laws for contrastive language-image learning,\" in *Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR)*, 2023 (the LAION CLIP scorer). [Online]. Available: https://arxiv.org/abs/2212.07143\n\n"
+        "[7] Astral, \"uv\" (the installer that builds the isolated environment). [Online]. Available: https://docs.astral.sh/uv/\n\n"
+        "[8] K. Valcorza, \"kandinsky-controlnet-depth-pipeline: README, model card and weights notes,\" GitHub repository. [Online]. Available: https://github.com/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/MODEL_CARD.md; https://github.com/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/README.md; https://github.com/kurtvalcorza/kandinsky-controlnet-depth-pipeline/blob/main/docs/WEIGHTS.md\n\n"
+        "[9] DIMER Notebook Specification 2.5 and Model Card Specification 1.2, in the ml-worker repository.\n"
     ),
 }

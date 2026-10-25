@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import Any
 
 GENERATOR_VERSION = "build_notebook.py/3.0"
-NOTEBOOK_SPEC = "2.2"
+NOTEBOOK_SPEC = "2.5"
 SOURCE_RECORD = "source.json"
 
 
@@ -395,6 +395,7 @@ def render(repo: Path, template: dict[str, Any], revision: str | None = None) ->
     total_mb = sum(m["totalBytes"] for m in ctx["manifests"].values()) / 1e6
     header = (
         f"# {template['title']}\n\n{badges}\n\n"
+        '> **⚠️ Notice.** For research, training and evaluation only. Not validated for production,\n> clinical, diagnostic or safety-critical use. Running this notebook downloads third-party\n> model weights and datasets under their own licenses (see the model card) and uses compute\n> on your own Colab or Kaggle account. Data you bring stays in your runtime, and you are\n> responsible for having the right to use it. Results here are tutorial evidence, not\n> benchmarks. Everything is provided "as is", without warranty of any kind. To the maximum\n> extent permitted by law, the maintainers and the DIMER platform accept no liability for\n> its use.\n\n'
         f"**Profile:** `{template['profile']}`  \n"
         f"**Mode:** `{mode}`  \n"
         f"**Notebook specification:** DIMER Notebook Specification {NOTEBOOK_SPEC} — **standalone** (§4)  \n"
@@ -452,6 +453,7 @@ def render(repo: Path, template: dict[str, Any], revision: str | None = None) ->
             "dimer": {
                 "notebook_profile": template["profile"],
                 "notebook_mode": mode,
+                "notebook_kind": "TUTORIAL",
                 "notebook_spec": NOTEBOOK_SPEC,
                 "standalone": True,
                 "requires_dimer_worker": False,
