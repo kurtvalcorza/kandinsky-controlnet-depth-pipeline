@@ -1,0 +1,27 @@
+[colab] Parsing notebook '<local-run-dir>/kandinsky_controlnet_depth_colab_65037a2_colab-cli-t4.ipynb'...
+[colab] Executing cell 1/5 - Infrastructure: check the runtime, GPU and disk; create a fresh run directory...
+{'gpu': 'Tesla T4, 15360 MiB', 'kernel_python': '3.13.16', 'run_directory': '/content/outputs/kandinsky_controlnet_depth/5f08e87963d7', 'weights': '/content/weights', 'environment': '/tmp/kandinsky_controlnet_depth_env_5f08e87963d7', 'free_gib': {'weights': 193.1, 'environment': 193.1}}
+[colab] Executing cell 2/5 - Infrastructure: write and verify the carried package, stage runner, lock and manifests...
+{'carried_files': 12, 'verified': True, 'repository': 'kurtvalcorza/kandinsky-controlnet-depth-pipeline', 'revision': '98a80b1ab0a6bb7e0a85a99e0f99f0b2f862147c', 'generator': 'build_notebook.py/3.0'}
+[colab] Executing cell 3/5 - Infrastructure: install the locked runtime into an isolated environment and define the stage runner...
+{'notebook_source': '98a80b1ab0a6bb7e0a85a99e0f99f0b2f862147c', 'python': '3.12.12', 'torch': '2.14.0+cu130', 'diffusers': '0.40.0', 'transformers': '5.17.0', 'peft': '0.21.0', 'cuda': True, 'locked_packages': 68, 'environment': '/tmp/kandinsky_controlnet_depth_env_5f08e87963d7/venv', 'setup_seconds': 90}
+[colab] Executing cell 4/5 - Infrastructure: stage and digest-verify the four pinned snapshots...
+Running stage 'weights' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5f08e87963d7/logs/weights.log
+{'model_id': 'kandinsky-community/kandinsky-2-2-controlnet-depth', 'revision': '08632524a2b7e3bed39a7901d92cdd07e37544d0', 'license': 'apache-2.0', 'files': 7, 'total_bytes': 5285192144}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+{'weights_dir': '/content/weights/kandinsky-2-2-controlnet-depth', 'fetched': ['README.md', 'model_index.json', 'movq/config.json', 'movq/diffusion_pytorch_model.safetensors', 'scheduler/scheduler_config.json', 'unet/config.json', 'unet/diffusion_pytorch_model.safetensors']}
+{'verified_files': 7, 'revision': '08632524a2b7e3bed39a7901d92cdd07e37544d0'}
+{'model_id': 'kandinsky-community/kandinsky-2-2-prior', 'revision': '9fc51ad5732afc5d031724219d22e6c42179c5a8', 'license': 'apache-2.0', 'files': 14, 'total_bytes': 10574964619}
+{'weights_dir': '/content/weights/kandinsky-2-2-prior', 'fetched': ['README.md', 'model_index.json', 'text_encoder/config.json', 'text_encoder/model.safetensors', 'image_processor/preprocessor_config.json', 'tokenizer/merges.txt', 'tokenizer/special_tokens_map.json', 'tokenizer/tokenizer_config.json', 'tokenizer/vocab.json', 'image_encoder/config.json', 'image_encoder/model.safetensors', 'scheduler/scheduler_config.json', 'prior/config.json', 'prior/diffusion_pytorch_model.safetensors']}
+{'verified_files': 14, 'revision': '9fc51ad5732afc5d031724219d22e6c42179c5a8'}
+{'model_id': 'Intel/dpt-large', 'revision': 'bc15f29aa3a80d532f2ed650b5e16ac48d8958f9', 'license': 'apache-2.0', 'files': 4, 'total_bytes': 1367465032}
+{'weights_dir': '/content/weights/dpt-large', 'fetched': ['README.md', 'config.json', 'preprocessor_config.json', 'model.safetensors']}
+{'verified_files': 4, 'revision': 'bc15f29aa3a80d532f2ed650b5e16ac48d8958f9'}
+{'model_id': 'laion/CLIP-ViT-B-32-laion2B-s34B-b79K', 'revision': '1a25a446712ba5ee05982a381eed697ef9b435cf', 'license': 'mit', 'files': 9, 'total_bytes': 608782299}
+{'weights_dir': '/content/weights/clip-vit-b-32-laion2b', 'fetched': ['README.md', 'config.json', 'merges.txt', 'model.safetensors', 'preprocessor_config.json', 'special_tokens_map.json', 'tokenizer.json', 'tokenizer_config.json', 'vocab.json']}
+{'verified_files': 9, 'revision': '1a25a446712ba5ee05982a381eed697ef9b435cf'}
+{'stage': 'weights', 'status': 'ok', 'seconds': 229.3}
+[colab] Executing cell 5/5 - kandinsky_controlnet_depth-15...
+Running stage 'prepare' in the isolated environment; log: /content/outputs/kandinsky_controlnet_depth/5f08e87963d7/logs/prepare.log
+Refused: etc: captions.csv was not found in it. Fix the dataset (captions.csv with id, file, caption beside the images) and run the Section 4 cell again.
+[colab] Saving notebook with outputs to '<local-run-dir>/kandinsky_controlnet_depth_colab_65037a2_colab-cli-t4_output.ipynb'...
