@@ -60,7 +60,7 @@ def _kernel(tmp_path: Path) -> dict:
     run_root.mkdir()
     namespace = {"ROOT": run_root, "WEIGHTS": tmp_path / "weights", "PYTHON": Path(sys.executable), "ENV": dict(os.environ)}
     exec("import hashlib\nimport json\nimport subprocess\n" + carrier, namespace)  # noqa: S102 - the notebook's own cell
-    definition = install[install.index("def run_stage(") : install.index("def load_record(")]
+    definition = install[install.index("REFUSED_EXIT = 3") : install.index("def load_record(")]
     exec(definition, namespace)  # noqa: S102
     return namespace
 
@@ -95,15 +95,15 @@ def _byod_zip(path: Path, *, columns: tuple[str, ...], image_side: int = 320) ->
         (("id", "file", "caption"), 200, "image sides must be within 256..4096 px"),
     ],
 )
-def test_invalid_byod_zip_raises_in_the_kernel_with_the_validator_message(tmp_path: Path, columns, side, refusal) -> None:
+def test_invalid_byod_zip_is_refused_in_the_kernel_with_the_validator_message(tmp_path: Path, columns, side, refusal) -> None:
     kernel = _kernel(tmp_path)
     archive = _byod_zip(tmp_path / "byod.zip", columns=columns, image_side=side)
-    with pytest.raises(RuntimeError) as caught:
+    with pytest.raises(kernel["Refused"]) as caught:  # one clean line, not a stage failure (DAT19/DAT20)
         kernel["run_stage"]("prepare", "--byod", archive)
-    assert refusal in str(caught.value)
-    assert "Stage 'prepare' failed (exit 2)" in str(caught.value)
+    (line,) = caught.value._render_traceback_()
+    assert line.startswith("Refused: byod.zip: ") and refusal in line
     error = json.loads((kernel["ROOT"] / "state" / "prepare.error.json").read_text(encoding="utf-8"))
-    assert error["type"] == "ValueError" and refusal in error["message"]
+    assert error["type"] == "Refused" and error["refused"] is True and refusal in error["message"]
 
 
 def test_kernel_cells_install_nothing_into_the_kernel() -> None:

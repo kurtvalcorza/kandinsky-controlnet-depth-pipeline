@@ -309,6 +309,17 @@ if not RUNTIME['cuda']:
     raise RuntimeError('The isolated environment cannot see a CUDA GPU. See Troubleshooting: this notebook does not support CPU-only runtimes.')
 
 
+REFUSED_EXIT = 3  # the stage runner's exit code for a user input it refused (DAT20); a crash exits 2
+
+
+class Refused(Exception):
+    \"\"\"A user input this notebook refused (NOTEBOOK_SPEC DAT19/DAT20). The kernel renders it through
+    _render_traceback_ as the single line 'Refused: <file>: <reason>', with no traceback, and Run all stops here.\"\"\"
+
+    def _render_traceback_(self):
+        return ['Refused: ' + str(self)]
+
+
 def run_stage(stage, *options):
     \"\"\"Run one stage of the carried runner in its own process with the isolated interpreter; stream its output.\"\"\"
     log = ROOT / 'logs' / (stage + '.log')
@@ -329,6 +340,8 @@ def run_stage(stage, *options):
         detail = 'see the log above'
         if error_file.is_file():
             error = json.loads(error_file.read_text(encoding='utf-8'))
+            if process.returncode == REFUSED_EXIT and error.get('refused'):
+                raise Refused(error['message'])
             detail = error['type'] + ': ' + error['message']
         raise RuntimeError(f'Stage {{stage!r}} failed (exit {{process.returncode}}): {{detail}}')
 

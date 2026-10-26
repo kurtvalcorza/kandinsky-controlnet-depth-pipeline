@@ -309,7 +309,7 @@ TEMPLATE = {
                 "**What to notice:** 36 / 12 / 12 records, six distinct captions, a shorter side around 300..500 px (every photo "
                 "is centre-cropped to 512²), a written `outputs/{stem}_sample_captions.csv` in the run directory in the shape BYOD "
                 "expects, and three refusal probes — a missing caption, a 200 px image, a duplicate id — each rejected before the "
-                "model runs. With `USE_BYOD = True`, an invalid zip stops this cell with a `RuntimeError` that repeats the "
+                "model runs. With `USE_BYOD = True`, an invalid zip stops this cell with one `Refused: <file>: <reason>` line, with no traceback, that repeats the "
                 "validator's message."
             ),
             "code": (
@@ -320,10 +320,21 @@ TEMPLATE = {
                 'if USE_BYOD:\n'
                 '    if BYOD_PATH:\n'
                 '        byod_path = Path(BYOD_PATH)\n'
+                '        if not byod_path.exists():\n'
+                "            raise Refused(f'{{BYOD_PATH}}: BYOD_PATH is not a zip or folder in this runtime; fix the path, or leave it empty to upload in Colab, then run this cell again.')\n"
                 '    else:\n'
-                '        from google.colab import files\n'
+                '        try:\n'
+                '            from google.colab import files\n'
+                '        except ImportError:\n'
+                "            raise Refused('BYOD_PATH: is empty, and the upload dialog needs Google Colab. Elsewhere, put the zip in this runtime, set BYOD_PATH to its path and run this cell again.') from None\n"
                 '        uploaded = files.upload()\n'
+                '        if not uploaded:\n'
+                "            raise Refused('(no file): the upload was cancelled or empty. Run this cell again and choose one .zip file, or set BYOD_PATH.')\n"
+                '        if len(uploaded) != 1:\n'
+                "            raise Refused(f'{{\", \".join(sorted(uploaded))}}: upload exactly one .zip file, got {{len(uploaded)}}. Run this cell again and choose one file.')\n"
                 '        file_name, payload = next(iter(uploaded.items()))\n'
+                "        if not file_name.lower().endswith('.zip'):\n"
+                "            raise Refused(f'{{file_name}}: the upload must be one .zip holding captions.csv and the images. Run this cell again and choose a .zip file.')\n"
                 "        byod_path = ROOT / 'byod' / Path(file_name).name\n"
                 '        byod_path.parent.mkdir(parents=True, exist_ok=True)\n'
                 '        byod_path.write_bytes(payload)\n'
@@ -577,7 +588,7 @@ TEMPLATE = {
                 "| `No space left on device` during a stage | the disk filled after the Section 1 check | start a fresh runtime with about 31 GB free |\n"
                 "| `CUDA out of memory` | a form field was raised, or another program holds GPU memory | keep `BATCH_SIZE = 1` and re-run that cell; each stage is its own process, so a failed stage's memory was released when it stopped; do not report a skipped stage as a result |\n"
                 "| A photo fetch fails in Section 4 | the open-data bucket is unreachable or a file changed | re-run the cell; a digest mismatch is refused on purpose, and verified photographs in `weights/inat-birds/` are reused |\n"
-                "| `ModuleNotFoundError: No module named 'google.colab'` with `USE_BYOD = True` | the upload dialog needs Google Colab | set `BYOD_PATH` to a zip already in the runtime, or keep `USE_BYOD = False` |\n"
+                "| `Refused: BYOD_PATH: is empty, and the upload dialog needs Google Colab` with `USE_BYOD = True` | the upload dialog needs Google Colab | set `BYOD_PATH` to a zip already in the runtime, or keep `USE_BYOD = False` |\n"
                 "| BYOD: `captions.csv is missing columns` / `image sides must be within` / `split leaves no test record` / `split leaves N training records` | the upload does not meet the data contract | fix the zip as the message says: columns `id,file,caption`, sides 256..4096 px, at least one caption with three or more images, and at least 6 distinct images so that 4 remain for training after each caption with 3..7 images gives one test and one validation image (for example six of one caption) |\n"
                 "| `adapter depth estimator ... does not match` | an adapter from another estimator or revision | reload only adapters exported by this pipeline revision |\n\n"
                 "A negative or surprising held-out result is not an error. Keep it, and read Section 9's *Check your reasoning*."
