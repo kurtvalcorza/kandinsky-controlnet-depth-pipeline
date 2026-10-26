@@ -135,7 +135,7 @@ regenerate the notebook whenever a pin changes.
 
 ## Release status
 
-**Candidate** — the tutorial notebook was regenerated after the 2026-10-02 notebook review (explanations, the
+**Candidate** — The current blob `9746674c` (code commit `98a80b1`) shows a refused BYOD input as one `Refused: <file>: <reason>` line with no traceback and removes the earlier run's results (NOTEBOOK_SPEC 3.0 DAT19/DAT20); its hosted Colab T4 runs (default path and a scripted refusal, `USE_BYOD=True;BYOD_PATH=/etc`) are pending, and the runs of blob `373f1ec4` and earlier are history for it (REL14). the tutorial notebook was regenerated after the 2026-10-02 notebook review (explanations, the
 leave-one-out real-photo reference and small printed outputs changed), so the hosted records belong to its
 previous revision; the current revision has one recorded Colab CLI run on a fresh T4 (2026-10-04, default path, one pass, no
 restart). The previous revision runs in an isolated hash-locked environment and passed `Run all` in one pass on Google
