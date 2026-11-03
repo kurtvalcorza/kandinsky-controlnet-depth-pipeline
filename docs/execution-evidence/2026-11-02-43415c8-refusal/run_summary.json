@@ -1,0 +1,69 @@
+{
+  "repo": "kandinsky-controlnet-depth-pipeline",
+  "sha": "43415c85ae86871a008c36c268fc47da65e2c15c",
+  "notebook": "tutorials/kandinsky_controlnet_depth_colab.ipynb",
+  "blob": "be42e738c07add9f00290859e890bd8f2e9c9594",
+  "gpu": "T4",
+  "session": "suite-kandinsky-43415c8-f75f",
+  "started_utc": "2026-11-02T22:15:38+00:00",
+  "runner": "Colab CLI `colab exec -f` on a fresh session (not a browser Run all)",
+  "overrides": [
+    {
+      "name": "USE_BYOD",
+      "from": "False",
+      "to": "True"
+    },
+    {
+      "name": "BYOD_PATH",
+      "from": "''",
+      "to": "'/etc'"
+    }
+  ],
+  "run_copy_blob": "67dca63a870561bf7ec905464f3039f33d4a3b85",
+  "run_copy_sha256": "c3f7ab5f474bf25ce2755fb0cd86c6b9edca7e9879312868e296c2136db4c7b1",
+  "run_copy_note": "refusal run: the run copy is the committed notebook with the listed assignment overrides, cut immediately after the refusal cell and re-serialised (nbformat layout); input_unchanged compares against that copy",
+  "truncated_after_cell": "kandinsky_controlnet_depth-15",
+  "refusal_cell_ref": "kandinsky_controlnet_depth-15",
+  "refusal_cell_index": 5,
+  "cells_dropped": 18,
+  "code_cells_dropped": 6,
+  "original_sha256": "54431a1b2fbeeef1b673ddc739f402859a3c9120c2964ba2e44c4ef095109e31",
+  "status": "[suite-kandinsky-43415c8-f75f] gpu-t4-s-ass1c2-2ubsjwytl3y32 | Hardware: T4 | Shape: Standard | Variant: GPU | Status: IDLE",
+  "exec_exit_code": 0,
+  "stopped": true,
+  "stop_verified": true,
+  "wall_s": 351.3,
+  "input_unchanged": true,
+  "executed_file": "kandinsky_controlnet_depth_colab_43415c8_colab-cli-t4_output.ipynb",
+  "log_cells": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "log_total": 5,
+  "code_cells": 5,
+  "executed_cells": 5,
+  "errors": [
+    {
+      "cell": "kandinsky_controlnet_depth-15",
+      "ename": "Refused",
+      "evalue": "etc: captions.csv was not found in it. Fix the dataset (captions.csv with id, file, caption beside the images) and run the Section 4 cell again."
+    }
+  ],
+  "execution_counts": [],
+  "sequential": null,
+  "executed_sha256": "d94148662db5c1ced03360a048380d71b065ddbcd6f99d603cfcc74bcc43b54b",
+  "log_sequential_complete": true,
+  "mode": "expect_refusal",
+  "refusal_line": "Refused: etc: captions.csv was not found in it. Fix the dataset (captions.csv with id, file, caption beside the images) and run the Section 4 cell again.",
+  "halting_cell_index": 5,
+  "halting_cell_id": "kandinsky_controlnet_depth-15",
+  "error_cells": [
+    5
+  ],
+  "refusal_fail_reasons": [],
+  "refusal_ok": true,
+  "verdict": "PASS"
+}

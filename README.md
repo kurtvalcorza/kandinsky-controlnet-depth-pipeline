@@ -135,13 +135,15 @@ regenerate the notebook whenever a pin changes.
 
 ## Release status
 
-**Candidate** — The current blob `9746674c` (code commit `98a80b1`) shows a refused BYOD input as one `Refused: <file>: <reason>` line with no traceback and removes the earlier run's results (NOTEBOOK_SPEC 3.0 DAT19/DAT20); passed on a hosted Colab T4 on 2026-10-26: its default path (11/11 code cells, one pass, no restart, 0 errors) and its scripted DAT20 refusal (`USE_BYOD=True;BYOD_PATH=/etc`: one `Refused:` line, no traceback). Remaining gates: REL12 (an accepted hosted BYOD input) and REL2 (a browser `Run all`). The runs of blob `373f1ec4` and earlier are history (REL14). the tutorial notebook was regenerated after the 2026-10-02 notebook review (explanations, the
+**Candidate** — the current blob `be42e738` (`main` at `43415c8`, after the 2026-11 lock upgrades) shows a refused BYOD input as exactly one `Refused: <file>: <reason>` line, with no traceback, and stops Run all at that cell. Its default path (2026-11-02; 11 code cells, exit 0, 0 errors) and its scripted DAT20 refusal (2026-11-02; `USE_BYOD=True;BYOD_PATH=/etc`: exactly one `Refused:` line at cell `kandinsky_controlnet_depth-15`, no traceback, earlier cells clean, VM released) both passed on a hosted Colab Tesla T4 (Colab CLI `colab exec -f`, not a browser `Run all`), and the hosted runs of earlier blobs, including `9746674c`, are history for it (REL14). REL12 (a hosted BYOD run) and REL2 (a browser `Run all`) stay open for this blob, as does every other open gate recorded in `docs/release-verification.md`.
+
+History (REL14): The blob `9746674c` (the current blob on 2026-10-26; history since the 2026-11 lock upgrades; code commit `98a80b1`) shows a refused BYOD input as one `Refused: <file>: <reason>` line with no traceback and removes the earlier run's results (NOTEBOOK_SPEC 3.0 DAT19/DAT20); passed on a hosted Colab T4 on 2026-10-26: its default path (11/11 code cells, one pass, no restart, 0 errors) and its scripted DAT20 refusal (`USE_BYOD=True;BYOD_PATH=/etc`: one `Refused:` line, no traceback). Remaining gates: REL12 (an accepted hosted BYOD input) and REL2 (a browser `Run all`). The runs of blob `373f1ec4` and earlier are history (REL14). the tutorial notebook was regenerated after the 2026-10-02 notebook review (explanations, the
 leave-one-out real-photo reference and small printed outputs changed), so the hosted records belong to its
 previous revision; revision `b9d2829` has one recorded Colab CLI run on a fresh T4 (2026-10-04, default path, one pass, no
 restart), history under REL14. The previous revision runs in an isolated hash-locked environment and passed `Run all` in one pass on Google
 Colab and on a strict Kaggle T4 run, plus the REL12 BYOD journey, at `c86e3fe`; the conversion check proved the pinned
-safetensors bit-identical to `main`. A strict clean-executor run and the BYOD journey at the current revision are needed before
-it is promoted again. See `docs/release-verification.md` and `STATUS.md`.
+safetensors bit-identical to `main`. A strict clean-executor run and the BYOD journey at the then-current revision were needed before
+it could be promoted again. See `docs/release-verification.md` and `STATUS.md`.
 
 ## Licensing
 
